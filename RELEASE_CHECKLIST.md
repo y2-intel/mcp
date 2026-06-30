@@ -32,7 +32,7 @@
 ## Publish
 
 - [ ] Confirm GitHub/npm package metadata detects Apache-2.0
-- [ ] Push `y2-intel/y2-mcp`
+- [ ] Push `y2-intel/mcp`
 - [ ] Add `NPM_TOKEN` repository secret for the `Publish` workflow
 - [ ] Run GitHub Actions `Publish` workflow or publish locally with npm auth
 - [ ] Publish `@y2-intel/mcp`

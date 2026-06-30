@@ -8,10 +8,10 @@
 	"homepage": "https://y2.dev/docs/api/mcp",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/y2-intel/y2-mcp.git"
+		"url": "git+https://github.com/y2-intel/mcp.git"
 	},
 	"bugs": {
-		"url": "https://github.com/y2-intel/y2-mcp/issues"
+		"url": "https://github.com/y2-intel/mcp/issues"
 	},
 	"keywords": [
 		"mcp",
@@ -36,7 +36,7 @@
 		"examples",
 		"server.json"
 	],
-	"mcpName": "io.github.y2-intel/y2-mcp",
+	"mcpName": "io.github.y2-intel/mcp",
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
 		"dev": "tsx src/index.ts",

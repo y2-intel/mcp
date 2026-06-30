@@ -12,14 +12,13 @@ does not embed Convex or platform internals.
 
 ## Current State
 
-- Standalone repo exists at `https://github.com/y2-intel/y2-mcp`.
+- Standalone repo exists at `https://github.com/y2-intel/mcp`.
 - Repo is currently private for staging.
 - Package name is `@y2-intel/mcp`.
 - Package version is `0.1.0`.
-- MCP server name is `io.github.y2-intel/y2-mcp`.
+- MCP server name is `io.github.y2-intel/mcp`.
 - License is `Apache-2.0`, matching the existing public Y2 SDK/CLI repos.
-- Main branch is pushed through commit `cc64caf` (`ci: add mcp release workflows`).
-- GitHub Actions `CI` passed on `main` for run `28467958163`.
+- GitHub Actions `CI` runs `npm run release:check` on every push to `main`.
 - npm package is not published yet.
 - Live Y2 API smoke tests have not been run because no live `Y2_API_KEY` was
   available in the local shell.
@@ -40,30 +39,21 @@ Reasons:
 
 ## Repository Naming
 
-Recommended launch shape:
+Final launch shape after the GitHub repo rename:
 
-- GitHub repo: `y2-intel/y2-mcp`
+- GitHub repo: `y2-intel/mcp`
 - npm package: `@y2-intel/mcp`
+- binary: `y2-mcp`
 
-This gives a descriptive GitHub repo and a short install command:
+This gives a short public GitHub URL and a short install command:
 
 ```sh
 npx -y @y2-intel/mcp
 ```
 
-If the desired public GitHub URL is literally `github.com/y2-intel/mcp`, rename
-the existing repo before public launch instead of creating another repo. Do not
-split history across two repositories.
-
-Rename checklist if choosing `y2-intel/mcp`:
-
-- Rename `y2-intel/y2-mcp` to `y2-intel/mcp` in GitHub.
-- Update local `origin` if Git does not follow the redirect.
-- Update README/docs links from `y2-intel/y2-mcp` to `y2-intel/mcp`.
-- Update `server.json` `name` if the MCP Registry identity should also use the
-  shorter repo path.
-- Re-run `npm run release:check`.
-- Confirm GitHub Actions `CI` still passes.
+The local checkout may remain at `/Users/tobalo/Development/y2/y2-mcp`; that is
+only a local folder name. Public metadata, issue links, and MCP registry
+metadata should use `y2-intel/mcp`.
 
 ## Implemented Scope
 
@@ -455,8 +445,7 @@ default_tools_approval_mode = "prompt"
 
 ## Public Launch Checklist
 
-- [ ] Decide whether repo remains `y2-intel/y2-mcp` or is renamed to
-      `y2-intel/mcp`.
+- [x] Rename GitHub repo to `y2-intel/mcp`.
 - [ ] Add GitHub secret `Y2_API_KEY`.
 - [ ] Run GitHub Actions `Live smoke` with `reports,news`.
 - [ ] Run local or GitHub live smoke for `agent` if launch copy mentions Agent
@@ -471,7 +460,7 @@ default_tools_approval_mode = "prompt"
 - [ ] Confirm README renders correctly on public GitHub.
 - [ ] Update platform docs if the repo URL changed.
 - [ ] Add MCP Registry metadata after npm package stability is confirmed.
-- [ ] Close or update release issue `https://github.com/y2-intel/y2-mcp/issues/1`.
+- [ ] Close or update release issue `https://github.com/y2-intel/mcp/issues/1`.
 
 ## Acceptance Criteria
 
