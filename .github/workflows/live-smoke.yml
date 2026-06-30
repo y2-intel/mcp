@@ -1,0 +1,38 @@
+name: Live smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      tools:
+        description: "Comma-separated smoke groups: reports,news,agent"
+        required: true
+        default: "reports,news"
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    name: Live Y2 API smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Run live smoke
+        run: npm run smoke:live
+        env:
+          Y2_API_KEY: ${{ secrets.Y2_API_KEY }}
+          Y2_MCP_SMOKE_TOOLS: ${{ inputs.tools }}

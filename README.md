@@ -89,6 +89,13 @@ Y2_MCP_SMOKE_TOOLS=reports,news,agent npm run smoke:live
 The `agent` smoke path consumes Agent Y2 chat budget. Use `reports,news` for a
 read-only smoke.
 
+GitHub Actions runs `release:check` on pushes and pull requests. Manual
+workflows are available for live smoke tests and npm publishing:
+
+- `Live smoke` requires the `Y2_API_KEY` repository secret.
+- `Publish` requires the `NPM_TOKEN` repository secret and publishes with npm
+  provenance.
+
 Credentials must never be provided as tool input. Use a least-privilege Y2 API
 key for each MCP client.
 
