@@ -51,6 +51,11 @@ tool_timeout_sec = 120
 default_tools_approval_mode = "prompt"
 ```
 
+## Claude Desktop
+
+Use the JSON shape in
+[`examples/claude-desktop.json`](examples/claude-desktop.json).
+
 ## Tools
 
 - `y2_ask_agent` - asks Agent Y2 through `/api/v1/agent-y2/chat/stream`.
@@ -73,8 +78,10 @@ default_tools_approval_mode = "prompt"
 npm install
 npm run build
 npm test
-npx @modelcontextprotocol/inspector node dist/index.js
+npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list
 ```
 
 Credentials must never be provided as tool input. Use a least-privilege Y2 API
 key for each MCP client.
+
+See [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) before publishing.

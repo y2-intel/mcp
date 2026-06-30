@@ -13,6 +13,8 @@
 		"LICENSE.md",
 		"SECURITY.md",
 		"CHANGELOG.md",
+		"RELEASE_CHECKLIST.md",
+		"examples",
 		"server.json"
 	],
 	"mcpName": "io.github.y2-intel/y2-mcp",

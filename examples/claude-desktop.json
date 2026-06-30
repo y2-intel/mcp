@@ -1,0 +1,11 @@
+{
+	"mcpServers": {
+		"y2": {
+			"command": "npx",
+			"args": ["-y", "@y2-intel/mcp"],
+			"env": {
+				"Y2_API_KEY": "y2_..."
+			}
+		}
+	}
+}
