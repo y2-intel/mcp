@@ -28,7 +28,7 @@
 
 ## Publish
 
-- [ ] Finalize license
+- [ ] Confirm GitHub/npm package metadata detects Apache-2.0
 - [ ] Push `y2-intel/y2-mcp`
 - [ ] Publish `@y2-intel/mcp`
 - [ ] Add MCP Registry metadata after npm package is stable
