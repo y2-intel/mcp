@@ -1,0 +1,13 @@
+{
+	"name": "io.github.y2-intel/y2-mcp",
+	"displayName": "Y2 MCP",
+	"description": "Connect MCP-compatible agents to Y2 docs, OpenAPI, reports, news, and Agent Y2.",
+	"version": "0.1.0",
+	"packages": [
+		{
+			"registryType": "npm",
+			"identifier": "@y2-intel/mcp",
+			"version": "0.1.0"
+		}
+	]
+}
