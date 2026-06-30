@@ -4,6 +4,25 @@
 	"description": "MCP server for connecting AI agents to Y2",
 	"type": "module",
 	"license": "UNLICENSED",
+	"author": "Y2",
+	"homepage": "https://y2.dev/docs/api/mcp",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/y2-intel/y2-mcp.git"
+	},
+	"bugs": {
+		"url": "https://github.com/y2-intel/y2-mcp/issues"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"claude",
+		"codex",
+		"ai-agents",
+		"y2",
+		"intelligence",
+		"openapi"
+	],
 	"bin": {
 		"y2-mcp": "./dist/index.js"
 	},
@@ -21,8 +40,21 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
 		"dev": "tsx src/index.ts",
+		"inspect:all": "npm run inspect:tools && npm run inspect:resources && npm run inspect:prompts && npm run inspect:openapi && npm run inspect:no-key-error",
+		"inspect:no-key-error": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/call --tool-name y2_list_reports --tool-arg limit=1",
+		"inspect:openapi": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/call --tool-name y2_get_openapi_operation --tool-arg operationId=listReports",
+		"inspect:prompts": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method prompts/list",
+		"inspect:resources": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/list",
+		"inspect:tools": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list",
+		"prepublishOnly": "npm run release:check",
+		"release:check": "npm run build && npm run typecheck:extras && npm test && npm pack --dry-run && npm run inspect:all",
+		"smoke:live": "tsx scripts/smoke-live.ts",
 		"test": "tsx --test test/*.test.ts",
-		"typecheck": "tsc -p tsconfig.json --noEmit"
+		"typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck:extras",
+		"typecheck:extras": "tsc --ignoreConfig --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 --strict --skipLibCheck --types node scripts/*.ts test/*.ts"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.29.0",

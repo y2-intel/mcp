@@ -76,10 +76,18 @@ Use the JSON shape in
 
 ```sh
 npm install
-npm run build
-npm test
-npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list
+npm run release:check
 ```
+
+Run live API smoke tests after exporting a scoped key:
+
+```sh
+export Y2_API_KEY=y2_...
+Y2_MCP_SMOKE_TOOLS=reports,news,agent npm run smoke:live
+```
+
+The `agent` smoke path consumes Agent Y2 chat budget. Use `reports,news` for a
+read-only smoke.
 
 Credentials must never be provided as tool input. Use a least-privilege Y2 API
 key for each MCP client.

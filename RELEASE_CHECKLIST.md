@@ -3,12 +3,7 @@
 ## Local package
 
 - [ ] `npm install`
-- [ ] `npm run build`
-- [ ] `npm test`
-- [ ] `npm pack --dry-run`
-- [ ] `npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list`
-- [ ] `npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/list`
-- [ ] `npx @modelcontextprotocol/inspector --cli node dist/index.js --method prompts/list`
+- [ ] `npm run release:check`
 
 ## No-key verification
 
@@ -18,9 +13,9 @@
 
 ## Live Y2 key verification
 
-- [ ] `y2_list_reports` works with `reports:read`
-- [ ] `y2_list_news` works with `news:read`
-- [ ] `y2_ask_agent` works with `agent:y2`
+- [ ] `Y2_MCP_SMOKE_TOOLS=reports npm run smoke:live` works with `reports:read`
+- [ ] `Y2_MCP_SMOKE_TOOLS=news npm run smoke:live` works with `news:read`
+- [ ] `Y2_MCP_SMOKE_TOOLS=agent npm run smoke:live` works with `agent:y2`
 - [ ] Missing `agent:y2` returns a clear scope error
 - [ ] Invalid key returns a clear auth error
 - [ ] Rate-limit response preserves `Retry-After` when present
