@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"description": "MCP server for connecting AI agents to Y2",
 	"type": "module",
-	"license": "UNLICENSED",
+	"license": "Apache-2.0",
 	"author": "Y2",
 	"homepage": "https://y2.dev/docs/api/mcp",
 	"repository": {
@@ -29,7 +29,7 @@
 	"files": [
 		"dist",
 		"README.md",
-		"LICENSE.md",
+		"LICENSE",
 		"SECURITY.md",
 		"CHANGELOG.md",
 		"RELEASE_CHECKLIST.md",
