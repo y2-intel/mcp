@@ -32,7 +32,6 @@
 		"LICENSE",
 		"SECURITY.md",
 		"CHANGELOG.md",
-		"RELEASE_CHECKLIST.md",
 		"examples",
 		"server.json"
 	],

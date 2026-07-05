@@ -10,7 +10,13 @@ const newsInput = {
 		.max(12)
 		.optional()
 		.describe("Optional list of Y2 news topics."),
-	limit: z.number().int().min(1).max(50).default(20),
+	limit: z
+		.number()
+		.int()
+		.min(1)
+		.max(200)
+		.default(50)
+		.describe("Maximum news items to return. Y2 API caps this at 200."),
 };
 
 export function registerNewsTools(server: McpServer, client: Y2Client, config: Y2McpConfig) {

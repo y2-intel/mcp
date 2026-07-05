@@ -7,7 +7,7 @@ import type { Y2Client } from "../y2-client.js";
 
 const operationInput = {
 	operationId: z.string().min(1).max(128).optional(),
-	path: z.string().min(1).max(256).optional(),
+	path: z.string().min(1).max(512).optional(),
 	method: z.enum(["get", "post", "put", "patch", "delete"]).optional(),
 };
 
@@ -27,9 +27,28 @@ function findByOperationId(openApi: unknown, operationId: string): unknown {
 	return undefined;
 }
 
+export function candidateOpenApiPaths(input: string): string[] {
+	const pathname = (() => {
+		try {
+			return new URL(input).pathname;
+		} catch {
+			return input.startsWith("/") ? input : `/${input}`;
+		}
+	})();
+	const candidates = [pathname];
+	if (pathname.startsWith("/api/v1/")) {
+		candidates.push(pathname.slice("/api/v1".length));
+	}
+	return [...new Set(candidates)];
+}
+
 function findByPath(openApi: unknown, path: string, method: string): unknown {
-	const operation = asRecord(asRecord(asRecord(openApi).paths)[path])[method];
-	return operation ? { path, method, operation } : undefined;
+	const paths = asRecord(asRecord(openApi).paths);
+	for (const candidatePath of candidateOpenApiPaths(path)) {
+		const operation = asRecord(paths[candidatePath])[method];
+		if (operation) return { path: candidatePath, method, operation };
+	}
+	return undefined;
 }
 
 export function registerOpenApiTools(server: McpServer, client: Y2Client, config: Y2McpConfig) {
