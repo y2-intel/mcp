@@ -11,6 +11,7 @@ export type Y2McpConfig = {
 	docsBaseUrl: string;
 	timeoutMs: number;
 	maxResponseChars: number;
+	enableAgentTool: boolean;
 	debug: boolean;
 };
 
@@ -44,6 +45,8 @@ export function loadConfig(env: Env = process.env): Y2McpConfig {
 			1_000,
 			200_000,
 		),
+		enableAgentTool:
+			env.Y2_MCP_ENABLE_AGENT === "1" || env.Y2_MCP_ENABLE_AGENT === "true",
 		debug: env.Y2_MCP_DEBUG === "1" || env.Y2_MCP_DEBUG === "true",
 	};
 }

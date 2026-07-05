@@ -49,6 +49,9 @@ async function main() {
 
 	const client = new Y2Client(config);
 	const tools = requestedTools();
+	if (tools.includes("agent") && !config.enableAgentTool) {
+		throw new Error("Set Y2_MCP_ENABLE_AGENT=1 before running the Agent Y2 smoke test.");
+	}
 
 	if (tools.includes("reports")) {
 		await runStep("reports", async () => {

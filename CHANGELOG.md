@@ -8,3 +8,5 @@
   `https://api.y2.dev/...` URLs resolve to the published OpenAPI operations.
 - Consolidated release instructions into `README.md` and kept planning
   checklists out of the package tarball.
+- Hid the Agent Y2 tool behind explicit `Y2_MCP_ENABLE_AGENT=1` opt-in and
+  expanded `server.json` registry metadata.

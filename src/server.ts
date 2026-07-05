@@ -18,7 +18,9 @@ export function createServer(config: Y2McpConfig): McpServer {
 	const client = new Y2Client(config);
 
 	registerDocsResources(server, client);
-	registerAgentTools(server, client, config);
+	if (config.enableAgentTool) {
+		registerAgentTools(server, client, config);
+	}
 	registerReportTools(server, client, config);
 	registerNewsTools(server, client, config);
 	registerOpenApiTools(server, client, config);

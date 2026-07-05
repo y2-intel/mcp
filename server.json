@@ -1,13 +1,17 @@
 {
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
 	"name": "io.github.y2-intel/mcp",
-	"displayName": "Y2 MCP",
+	"title": "Y2 MCP",
 	"description": "Connect MCP-compatible agents to Y2 docs, OpenAPI, reports, news, and Agent Y2.",
 	"version": "0.1.0",
 	"packages": [
 		{
 			"registryType": "npm",
 			"identifier": "@y2-intel/mcp",
-			"version": "0.1.0"
+			"version": "0.1.0",
+			"transport": {
+				"type": "stdio"
+			}
 		}
 	]
 }

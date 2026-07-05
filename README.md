@@ -27,6 +27,13 @@ export Y2_MCP_TIMEOUT_MS=60000
 export Y2_MCP_MAX_RESPONSE_CHARS=40000
 ```
 
+Agent Y2 is disabled by default. Enable it only for keys that intentionally have
+the `agent:y2` scope:
+
+```sh
+export Y2_MCP_ENABLE_AGENT=1
+```
+
 ## Clients
 
 Claude Code:
@@ -68,12 +75,12 @@ served from `https://y2.dev/api/openapi.yaml`.
 | `y2_list_reports` | `GET /api/v1/reports` | `reports:read` |
 | `y2_get_report` | `GET /api/v1/reports/{reportId}` | `reports:read` |
 | `y2_list_news` | `GET /api/v1/news` | `news:read` |
-| `y2_ask_agent` | `POST /api/v1/agent-y2/chat/stream` | `agent:y2` |
+| `y2_ask_agent` | `POST /api/v1/agent-y2/chat/stream` | `agent:y2` plus `Y2_MCP_ENABLE_AGENT=1` |
 
 OpenAPI v1 paths are relative to `https://api.y2.dev/api/v1`, so both
 `/reports` and `/api/v1/reports` work with `y2_get_openapi_operation`. Agent Y2
-is opt-in because it can use entitled Y2 account actions; use a key with
-`agent:y2` only when that behavior is intended.
+is disabled by default because it can use entitled Y2 account actions. Set
+`Y2_MCP_ENABLE_AGENT=1` only when that behavior is intended.
 
 Credentials must never be passed as tool arguments or pasted into prompts. Give
 each MCP client a least-privilege Y2 API key through its environment.
@@ -103,9 +110,11 @@ export Y2_API_KEY=y2_...
 Y2_MCP_SMOKE_TOOLS=reports,news npm run smoke:live
 ```
 
-The `agent` smoke path consumes Agent Y2 chat budget:
+The `agent` smoke path consumes Agent Y2 chat budget and should be run only with
+an API key that has `agent:y2`:
 
 ```sh
+export Y2_MCP_ENABLE_AGENT=1
 Y2_MCP_SMOKE_TOOLS=agent npm run smoke:live
 ```
 

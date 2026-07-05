@@ -15,6 +15,15 @@ npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/
 npx @modelcontextprotocol/inspector --cli node dist/index.js --method prompts/list
 ```
 
+Agent Y2 is hidden by default. To verify the opt-in tool surface:
+
+```sh
+npx @modelcontextprotocol/inspector --cli \
+  -e Y2_MCP_ENABLE_AGENT=1 \
+  node dist/index.js \
+  --method tools/list
+```
+
 Call a no-key tool:
 
 ```sh

@@ -20,6 +20,13 @@ describe("config", () => {
 		assert.equal(loadConfig({ Y2_MCP_TIMEOUT_MS: "999999999" }).timeoutMs, 300_000);
 	});
 
+	it("keeps Agent Y2 tool disabled unless explicitly enabled", () => {
+		assert.equal(loadConfig({}).enableAgentTool, false);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_AGENT: "0" }).enableAgentTool, false);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_AGENT: "1" }).enableAgentTool, true);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_AGENT: "true" }).enableAgentTool, true);
+	});
+
 	it("redacts secrets", () => {
 		assert.equal(redactSecret("y2_1234567890"), "y2_1...[redacted]...7890");
 	});

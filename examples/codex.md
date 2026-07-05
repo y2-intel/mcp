@@ -22,3 +22,7 @@ default_tools_approval_mode = "prompt"
 
 Use the default prompt approval mode until you are comfortable with which Y2
 tools are enabled for the API key.
+
+Agent Y2 is disabled by default. To expose `y2_ask_agent`, export
+`Y2_MCP_ENABLE_AGENT=1` and add it to `env_vars` alongside `Y2_API_KEY`. Use a
+Y2 API key with `agent:y2` only when Agent Y2 account actions are intended.

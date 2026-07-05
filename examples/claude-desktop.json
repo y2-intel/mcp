@@ -4,7 +4,8 @@
 			"command": "npx",
 			"args": ["-y", "@y2-intel/mcp"],
 			"env": {
-				"Y2_API_KEY": "y2_..."
+				"Y2_API_KEY": "y2_...",
+				"Y2_MCP_ENABLE_AGENT": "0"
 			}
 		}
 	}
