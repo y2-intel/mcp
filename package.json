@@ -24,7 +24,7 @@
 		"openapi"
 	],
 	"bin": {
-		"y2-mcp": "./dist/index.js"
+		"y2-mcp": "dist/index.js"
 	},
 	"files": [
 		"dist",
