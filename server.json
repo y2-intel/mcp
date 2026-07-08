@@ -4,6 +4,11 @@
 	"title": "Y2 MCP",
 	"description": "Connect MCP-compatible agents to Y2 docs, OpenAPI, reports, news, and Agent Y2.",
 	"version": "0.1.0",
+	"websiteUrl": "https://y2.dev/docs/api/mcp",
+	"repository": {
+		"url": "https://github.com/y2-intel/mcp",
+		"source": "github"
+	},
 	"packages": [
 		{
 			"registryType": "npm",
@@ -11,7 +16,52 @@
 			"version": "0.1.0",
 			"transport": {
 				"type": "stdio"
-			}
+			},
+			"environmentVariables": [
+				{
+					"name": "Y2_API_KEY",
+					"description": "Scoped Y2 API key for reports, news, and Agent Y2 tools.",
+					"format": "string",
+					"isRequired": false,
+					"isSecret": true,
+					"placeholder": "y2_..."
+				},
+				{
+					"name": "Y2_MCP_ENABLE_AGENT",
+					"description": "Set to true only when Agent Y2 account actions are intended.",
+					"format": "boolean",
+					"isRequired": false,
+					"default": "false"
+				},
+				{
+					"name": "Y2_API_BASE_URL",
+					"description": "Override the Y2 API base URL.",
+					"format": "string",
+					"isRequired": false,
+					"default": "https://api.y2.dev"
+				},
+				{
+					"name": "Y2_DOCS_BASE_URL",
+					"description": "Override the Y2 docs base URL.",
+					"format": "string",
+					"isRequired": false,
+					"default": "https://y2.dev"
+				},
+				{
+					"name": "Y2_MCP_TIMEOUT_MS",
+					"description": "Y2 request timeout in milliseconds.",
+					"format": "number",
+					"isRequired": false,
+					"default": "60000"
+				},
+				{
+					"name": "Y2_MCP_MAX_RESPONSE_CHARS",
+					"description": "Maximum text characters returned for formatted JSON results.",
+					"format": "number",
+					"isRequired": false,
+					"default": "40000"
+				}
+			]
 		}
 	]
 }

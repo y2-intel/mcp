@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Y2McpConfig } from "../config.js";
 import { errorResult, formatJson, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
+import { readOnlyExternalToolAnnotations } from "./metadata.js";
 
 const newsInput = {
 	topics: z
@@ -20,10 +21,14 @@ const newsInput = {
 };
 
 export function registerNewsTools(server: McpServer, client: Y2Client, config: Y2McpConfig) {
-	server.tool(
+	server.registerTool(
 		"y2_list_news",
-		"List bounded Y2 News Terminal items. Requires news:read.",
-		newsInput,
+		{
+			title: "List Y2 News",
+			description: "List bounded Y2 News Terminal items. Requires news:read.",
+			inputSchema: newsInput,
+			annotations: readOnlyExternalToolAnnotations,
+		},
 		async ({ topics, limit }) => {
 			try {
 				const data = await client.requestJson("/api/v1/news", {

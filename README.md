@@ -63,6 +63,8 @@ default_tools_approval_mode = "prompt"
 
 Claude Desktop JSON is in
 [`examples/claude-desktop.json`](examples/claude-desktop.json).
+Hermes install/integration test notes are in
+[`examples/hermes.md`](examples/hermes.md).
 
 ## Y2 API Usage
 

@@ -4,11 +4,20 @@ import { z } from "zod";
 import type { Y2McpConfig } from "../config.js";
 import { errorResult, formatJson, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
+import { readOnlyExternalToolAnnotations } from "./metadata.js";
 
 const operationInput = {
-	operationId: z.string().min(1).max(128).optional(),
-	path: z.string().min(1).max(512).optional(),
-	method: z.enum(["get", "post", "put", "patch", "delete"]).optional(),
+	operationId: z.string().min(1).max(128).optional().describe("Y2 OpenAPI operationId."),
+	path: z
+		.string()
+		.min(1)
+		.max(512)
+		.optional()
+		.describe("Y2 API path or full Y2 API URL, such as /reports or /api/v1/reports."),
+	method: z
+		.enum(["get", "post", "put", "patch", "delete"])
+		.optional()
+		.describe("HTTP method to use with path."),
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -52,10 +61,15 @@ function findByPath(openApi: unknown, path: string, method: string): unknown {
 }
 
 export function registerOpenApiTools(server: McpServer, client: Y2Client, config: Y2McpConfig) {
-	server.tool(
+	server.registerTool(
 		"y2_get_openapi_operation",
-		"Return one Y2 OpenAPI operation by operationId or path plus method. Does not require Y2_API_KEY.",
-		operationInput,
+		{
+			title: "Get Y2 OpenAPI Operation",
+			description:
+				"Return one Y2 OpenAPI operation by operationId or path plus method. Does not require Y2_API_KEY.",
+			inputSchema: operationInput,
+			annotations: readOnlyExternalToolAnnotations,
+		},
 		async ({ operationId, path, method }) => {
 			try {
 				if (!operationId && (!path || !method)) {
