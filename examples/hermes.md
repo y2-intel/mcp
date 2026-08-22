@@ -17,14 +17,12 @@ npx @modelcontextprotocol/inspector --cli \
   --method tools/list
 ```
 
-Expected default tools:
-
-- `y2_list_reports`
-- `y2_get_report`
-- `y2_list_news`
-- `y2_get_openapi_operation`
+Expected default tools include read-only Y2 report, news, OSINT, Intel v2,
+webhook-listing, OpenAPI lookup, and x402 receipt tools.
 
 Agent Y2 is intentionally hidden unless `Y2_MCP_ENABLE_AGENT=1` is set.
+Profile, webhook, and delivery mutation tools are intentionally hidden unless
+`Y2_MCP_ENABLE_WRITE_TOOLS=1` is set.
 
 ## Public no-key smoke
 
@@ -99,6 +97,24 @@ mcp_servers:
 
 With Agent Y2 enabled, `tools/list` should also include `y2_ask_agent`.
 
+## Write tool opt-in
+
+Only enable write tools when the Hermes agent should be allowed to mutate Y2
+profiles, webhooks, or subscription delivery settings and the key has the
+matching write/manage scopes.
+
+```yaml
+mcp_servers:
+  y2:
+    command: npx
+    args:
+      - -y
+      - @y2-intel/mcp
+    env:
+      Y2_API_KEY: ${Y2_API_KEY}
+      Y2_MCP_ENABLE_WRITE_TOOLS: "1"
+```
+
 ## Hermes agent test prompt
 
 Use a prompt like this after the MCP server is connected:
@@ -120,8 +136,9 @@ call succeeded or report the structured error. Do not expose the API key.
 ## Pass criteria
 
 - Hermes can start the Y2 MCP server with `npx -y @y2-intel/mcp`.
-- `tools/list` shows the four default tools.
+- `tools/list` shows the expanded default read-only tool surface.
 - `y2_get_openapi_operation` works without `Y2_API_KEY`.
 - Scoped tools fail cleanly without `Y2_API_KEY`.
 - Scoped tools work with a least-privilege Y2 API key.
 - `y2_ask_agent` appears only when `Y2_MCP_ENABLE_AGENT=1`.
+- Write tools appear only when `Y2_MCP_ENABLE_WRITE_TOOLS=1`.

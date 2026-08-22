@@ -43,6 +43,50 @@ describe("Y2Client", () => {
 		assert.equal(requests[0].headers.get("authorization"), "Bearer y2_test");
 	});
 
+	it("retries transient 5xx responses and eventually succeeds", async () => {
+		let attempts = 0;
+		globalThis.fetch = async (input, init) => {
+			attempts++;
+			if (attempts < 3) return new Response("upstream error", { status: 503 });
+			return jsonResponse({ ok: true });
+		};
+
+		const client = new Y2Client(
+			loadConfig({
+				Y2_API_KEY: "y2_test",
+				Y2_API_BASE_URL: "https://api.example.com",
+			}),
+		);
+
+		assert.deepEqual(await client.requestJson("/api/v1/reports"), { ok: true });
+		assert.equal(attempts, 3);
+	});
+
+	it("throws after exhausting retries on persistent failures", async () => {
+		let attempts = 0;
+		globalThis.fetch = async (input, init) => {
+			attempts++;
+			return new Response("nope", { status: 429, headers: { "retry-after": "0" } });
+		};
+
+		const client = new Y2Client(
+			loadConfig({
+				Y2_API_KEY: "y2_test",
+				Y2_API_BASE_URL: "https://api.example.com",
+			}),
+		);
+
+		await assert.rejects(
+			() => client.requestJson("/api/v1/reports"),
+			(error) => {
+				assert.ok(error instanceof Y2ApiError);
+				assert.equal((error as Y2ApiError).status, 429);
+				return true;
+			},
+		);
+		assert.equal(attempts, 3);
+	});
+
 	it("converts Agent Y2 streams into final text and thread id", async () => {
 		globalThis.fetch = async () =>
 			new Response('0:"Hello "\n0:"world"\n', {

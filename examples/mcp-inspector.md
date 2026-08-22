@@ -24,6 +24,16 @@ npx @modelcontextprotocol/inspector --cli \
   --method tools/list
 ```
 
+Write tools are hidden by default. To verify profile, webhook, and delivery
+mutation tools:
+
+```sh
+npx @modelcontextprotocol/inspector --cli \
+  -e Y2_MCP_ENABLE_WRITE_TOOLS=1 \
+  node dist/index.js \
+  --method tools/list
+```
+
 Call a no-key tool:
 
 ```sh

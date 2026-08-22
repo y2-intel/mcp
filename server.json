@@ -3,7 +3,7 @@
 	"name": "io.github.y2-intel/mcp",
 	"title": "Y2 MCP",
 	"description": "Connect MCP-compatible agents to Y2 docs, OpenAPI, reports, news, and Agent Y2.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"websiteUrl": "https://y2.dev/docs/api/mcp",
 	"repository": {
 		"url": "https://github.com/y2-intel/mcp",
@@ -13,7 +13,7 @@
 		{
 			"registryType": "npm",
 			"identifier": "@y2-intel/mcp",
-			"version": "0.1.0",
+			"version": "0.2.0",
 			"transport": {
 				"type": "stdio"
 			},
@@ -29,6 +29,13 @@
 				{
 					"name": "Y2_MCP_ENABLE_AGENT",
 					"description": "Set to true only when Agent Y2 account actions are intended.",
+					"format": "boolean",
+					"isRequired": false,
+					"default": "false"
+				},
+				{
+					"name": "Y2_MCP_ENABLE_WRITE_TOOLS",
+					"description": "Set to true to expose profile, webhook, and delivery mutation tools.",
 					"format": "boolean",
 					"isRequired": false,
 					"default": "false"

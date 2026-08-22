@@ -11,3 +11,17 @@ export const agentActionToolAnnotations = {
 	idempotentHint: false,
 	openWorldHint: true,
 } satisfies ToolAnnotations;
+
+export const additiveExternalToolAnnotations = {
+	readOnlyHint: false,
+	destructiveHint: false,
+	idempotentHint: false,
+	openWorldHint: true,
+} satisfies ToolAnnotations;
+
+export const destructiveExternalToolAnnotations = {
+	readOnlyHint: false,
+	destructiveHint: true,
+	idempotentHint: false,
+	openWorldHint: true,
+} satisfies ToolAnnotations;

@@ -8,6 +8,7 @@ type Query = Record<string, string | undefined>;
 type RequestOptions = {
 	method?: string;
 	query?: Query;
+	headers?: Record<string, string>;
 	body?: unknown;
 	auth?: boolean;
 };
@@ -45,6 +46,29 @@ async function responseText(response: Response): Promise<string> {
 	} catch {
 		return "";
 	}
+}
+
+// Retry transient failures (429 and 5xx) up to 2 extra attempts.
+const RETRYABLE_ATTEMPTS = 2;
+const RETRY_BASE_DELAY_MS = 500;
+const RETRY_MAX_DELAY_MS = 8_000;
+
+function isRetryableStatus(status: number): boolean {
+	return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
+function retryDelayMs(response: Response, attempt: number): number {
+	const retryAfterHeader = response.headers.get("retry-after");
+	const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+	const fromHeader = Number.isFinite(retryAfterSeconds)
+		? Math.min(retryAfterSeconds * 1000, RETRY_MAX_DELAY_MS)
+		: 0;
+	const backoff = Math.min(RETRY_BASE_DELAY_MS * 2 ** attempt, RETRY_MAX_DELAY_MS);
+	return Math.max(fromHeader, backoff);
+}
+
+function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function errorMessageFromBody(body: string): { message: string; code?: string } {
@@ -124,20 +148,33 @@ export class Y2Client {
 	}
 
 	async request(path: string, options: RequestOptions = {}): Promise<Response> {
-		const headers = new Headers();
+		const headers = new Headers(options.headers);
 		headers.set("Accept", "application/json, text/event-stream, text/plain");
 		if (options.auth !== false) {
 			headers.set("Authorization", `Bearer ${requireApiKey(this.#config)}`);
 		}
 		if (options.body !== undefined) headers.set("Content-Type", "application/json");
 
-		const response = await this.fetch(buildUrl(this.#config.apiBaseUrl, path, options.query), {
-			method: options.method ?? (options.body === undefined ? "GET" : "POST"),
-			headers,
-			body: options.body === undefined ? undefined : JSON.stringify(options.body),
-		});
-		await this.throwIfNotOk(response);
-		return response;
+		const method = options.method ?? (options.body === undefined ? "GET" : "POST");
+		const url = buildUrl(this.#config.apiBaseUrl, path, options.query);
+
+		let lastResponse: Response | undefined;
+		for (let attempt = 0; attempt <= RETRYABLE_ATTEMPTS; attempt++) {
+			const response = await this.fetch(url, {
+				method,
+				headers,
+				body: options.body === undefined ? undefined : JSON.stringify(options.body),
+			});
+			if (!isRetryableStatus(response.status) || attempt === RETRYABLE_ATTEMPTS) {
+				lastResponse = response;
+				break;
+			}
+			await response.body?.cancel().catch(() => {});
+			await delay(retryDelayMs(response, attempt));
+		}
+
+		await this.throwIfNotOk(lastResponse!);
+		return lastResponse!;
 	}
 
 	async fetch(url: URL, init: RequestInit): Promise<Response> {

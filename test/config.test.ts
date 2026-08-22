@@ -27,6 +27,13 @@ describe("config", () => {
 		assert.equal(loadConfig({ Y2_MCP_ENABLE_AGENT: "true" }).enableAgentTool, true);
 	});
 
+	it("keeps write tools disabled unless explicitly enabled", () => {
+		assert.equal(loadConfig({}).enableWriteTools, false);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_WRITE_TOOLS: "0" }).enableWriteTools, false);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_WRITE_TOOLS: "1" }).enableWriteTools, true);
+		assert.equal(loadConfig({ Y2_MCP_ENABLE_WRITE_TOOLS: "true" }).enableWriteTools, true);
+	});
+
 	it("redacts secrets", () => {
 		assert.equal(redactSecret("y2_1234567890"), "y2_1...[redacted]...7890");
 	});

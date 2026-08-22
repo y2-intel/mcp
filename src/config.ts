@@ -12,6 +12,7 @@ export type Y2McpConfig = {
 	timeoutMs: number;
 	maxResponseChars: number;
 	enableAgentTool: boolean;
+	enableWriteTools: boolean;
 	debug: boolean;
 };
 
@@ -47,6 +48,9 @@ export function loadConfig(env: Env = process.env): Y2McpConfig {
 		),
 		enableAgentTool:
 			env.Y2_MCP_ENABLE_AGENT === "1" || env.Y2_MCP_ENABLE_AGENT === "true",
+		enableWriteTools:
+			env.Y2_MCP_ENABLE_WRITE_TOOLS === "1" ||
+			env.Y2_MCP_ENABLE_WRITE_TOOLS === "true",
 		debug: env.Y2_MCP_DEBUG === "1" || env.Y2_MCP_DEBUG === "true",
 	};
 }

@@ -28,9 +28,13 @@ describe("registry metadata", () => {
 		const npmPackage = packages.find((entry) => entry.registryType === "npm");
 		const envVars = npmPackage?.environmentVariables as Array<Record<string, unknown>>;
 		const apiKey = envVars.find((entry) => entry.name === "Y2_API_KEY");
+		const writeTools = envVars.find((entry) => entry.name === "Y2_MCP_ENABLE_WRITE_TOOLS");
 
 		assert.equal(apiKey?.isRequired, false);
 		assert.equal(apiKey?.isSecret, true);
 		assert.equal(apiKey?.format, "string");
+		assert.equal(writeTools?.isRequired, false);
+		assert.equal(writeTools?.format, "boolean");
+		assert.equal(writeTools?.default, "false");
 	});
 });

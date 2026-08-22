@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { candidateOpenApiPaths } from "../src/tools/openapi.js";
+import { candidatePaths } from "../src/openapi.js";
 
 describe("candidateOpenApiPaths", () => {
+	const candidateOpenApiPaths = candidatePaths;
 	it("accepts Y2 API v1 paths and OpenAPI-relative paths", () => {
 		assert.deepEqual(candidateOpenApiPaths("/api/v1/reports"), [
 			"/api/v1/reports",

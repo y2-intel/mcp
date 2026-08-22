@@ -11,6 +11,12 @@ const newsInput = {
 		.max(12)
 		.optional()
 		.describe("Optional list of Y2 news topics."),
+	countryCode: z
+		.string()
+		.length(2)
+		.optional()
+		.describe("ISO 3166-1 alpha-2 country code filter, such as US or CN."),
+	format: z.enum(["rows"]).optional().describe("Explicit representation override."),
 	limit: z
 		.number()
 		.int()
@@ -29,12 +35,14 @@ export function registerNewsTools(server: McpServer, client: Y2Client, config: Y
 			inputSchema: newsInput,
 			annotations: readOnlyExternalToolAnnotations,
 		},
-		async ({ topics, limit }) => {
+		async ({ topics, countryCode, format, limit }) => {
 			try {
 				const data = await client.requestJson("/api/v1/news", {
 					query: {
 						limit: String(limit),
 						...(topics?.length ? { topics: topics.join(",") } : {}),
+						...(countryCode ? { countryCode } : {}),
+						...(format ? { format } : {}),
 					},
 				});
 				return textResult(formatJson(data, config));
