@@ -168,7 +168,7 @@ describe("createServer", () => {
 			});
 
 			assert.equal(result.isError, undefined);
-			assert.equal(requests[0].url, "https://api.example.com/x402/receipts/nonce_123");
+			assert.equal(requests[0].url, "https://api.example.com/api/v1/x402/receipts/nonce_123");
 			assert.equal(requests[0].headers.has("authorization"), false);
 		});
 	});

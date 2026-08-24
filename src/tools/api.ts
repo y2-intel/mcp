@@ -1087,9 +1087,11 @@ const writeTools: ApiToolDefinition[] = [
 ];
 
 function toApiPath(openApiPath: string): string {
-	if (openApiPath.startsWith("/api/v2/") || openApiPath.startsWith("/x402/")) {
+	if (openApiPath.startsWith("/api/v2/")) {
 		return openApiPath;
 	}
+	// x402 receipt routes are served under /api/v1 even though the OpenAPI
+	// document (like every v1 resource) omits the prefix.
 	return `/api/v1${openApiPath}`;
 }
 
