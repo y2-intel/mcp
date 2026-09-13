@@ -20,7 +20,7 @@
 			"environmentVariables": [
 				{
 					"name": "Y2_API_KEY",
-					"description": "Scoped Y2 API key for reports, news, and Agent Y2 tools.",
+					"description": "Scoped Y2 API key for the enabled API tools.",
 					"format": "string",
 					"isRequired": false,
 					"isSecret": true,
@@ -35,7 +35,7 @@
 				},
 				{
 					"name": "Y2_MCP_ENABLE_WRITE_TOOLS",
-					"description": "Set to true to expose profile, webhook, and delivery mutation tools.",
+					"description": "Set to true to enable profile, project, automation, webhook, and delivery mutations, including y2_call_api writes.",
 					"format": "boolean",
 					"isRequired": false,
 					"default": "false"

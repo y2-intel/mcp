@@ -5,7 +5,6 @@ import {
 	findOperationById,
 	findOperationByPath,
 	loadOpenApi,
-	toResolvedOperation,
 } from "../openapi.js";
 import { errorResult, formatJson, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
@@ -47,7 +46,7 @@ export function registerOpenApiTools(server: McpServer, client: Y2Client, config
 				if (!resolved) {
 					throw new Error("OpenAPI operation not found.");
 				}
-				return textResult(formatJson(toResolvedOperation(spec, resolved.path, resolved.method), config));
+				return textResult(formatJson(resolved, config));
 			} catch (error) {
 				return errorResult(error, config);
 			}

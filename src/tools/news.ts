@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { Y2McpConfig } from "../config.js";
-import { errorResult, formatJson, textResult } from "../text.js";
+import { errorResult, formatResponse, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
 import { readOnlyExternalToolAnnotations } from "./metadata.js";
 
@@ -16,7 +16,8 @@ const newsInput = {
 		.length(2)
 		.optional()
 		.describe("ISO 3166-1 alpha-2 country code filter, such as US or CN."),
-	format: z.enum(["rows"]).optional().describe("Explicit representation override."),
+	cursor: z.string().min(1).optional().describe("Opaque cursor returned by a previous response."),
+	format: z.enum(["json", "ndjson"]).optional().describe("Response representation."),
 	limit: z
 		.number()
 		.int()
@@ -35,17 +36,18 @@ export function registerNewsTools(server: McpServer, client: Y2Client, config: Y
 			inputSchema: newsInput,
 			annotations: readOnlyExternalToolAnnotations,
 		},
-		async ({ topics, countryCode, format, limit }) => {
+		async ({ topics, countryCode, cursor, format, limit }) => {
 			try {
-				const data = await client.requestJson("/api/v1/news", {
+				const response = await client.request("/api/v1/news", {
 					query: {
 						limit: String(limit),
+						cursor,
 						...(topics?.length ? { topics: topics.join(",") } : {}),
 						...(countryCode ? { countryCode } : {}),
 						...(format ? { format } : {}),
 					},
 				});
-				return textResult(formatJson(data, config));
+				return textResult(await formatResponse(response, config));
 			} catch (error) {
 				return errorResult(error, config);
 			}

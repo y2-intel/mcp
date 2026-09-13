@@ -7,10 +7,11 @@ import {
 	findOperationById,
 	loadOpenApi,
 	summarizeOperations,
+	toApiPath,
 } from "../openapi.js";
-import { errorResult, formatJson, limitText, textResult } from "../text.js";
+import { errorResult, formatJson, formatResponse, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
-import { readOnlyExternalToolAnnotations } from "./metadata.js";
+import { destructiveExternalToolAnnotations, readOnlyExternalToolAnnotations } from "./metadata.js";
 
 const listInput = {};
 
@@ -68,9 +69,11 @@ export function registerApiCallTools(server: McpServer, client: Y2Client, config
 		{
 			title: "Call Y2 API Operation",
 			description:
-				"Call any Y2 API operation by operationId (or path plus method), building path/query/header parameters and JSON body from the live Y2 OpenAPI document. Requires Y2_API_KEY except for public endpoints such as x402 receipts.",
+				"Call any Y2 API operation by operationId (or path plus method), building path/query/header parameters and JSON body from the live Y2 OpenAPI document. Requires Y2_API_KEY except for public endpoints such as x402 receipts. Mutations require Y2_MCP_ENABLE_WRITE_TOOLS=1; Agent Y2 endpoints require Y2_MCP_ENABLE_AGENT=1.",
 			inputSchema: callInput,
-			annotations: readOnlyExternalToolAnnotations,
+			annotations: config.enableWriteTools || config.enableAgentTool
+				? destructiveExternalToolAnnotations
+				: readOnlyExternalToolAnnotations,
 		},
 		async ({ operationId, path, method, parameters, body }) => {
 			try {
@@ -87,31 +90,33 @@ export function registerApiCallTools(server: McpServer, client: Y2Client, config
 					);
 				}
 
+				const operationPath = toApiPath(operation.path);
+				const isAgent = operation.requiredScopes.includes("agent:y2")
+					|| operationPath.startsWith("/api/v1/agent-y2/")
+					|| operationPath === "/api/v1/chat/completions";
+				const isReadOnly = operation.method === "get"
+					|| (operation.method === "post" && operationPath === "/api/v2/intel/knowledge/retrieve");
+				if (isAgent && !config.enableAgentTool) {
+					throw new Error("Set Y2_MCP_ENABLE_AGENT=1 to call Agent Y2 operations.");
+				}
+				if (!isAgent && !isReadOnly && !config.enableWriteTools) {
+					throw new Error("Set Y2_MCP_ENABLE_WRITE_TOOLS=1 to call write operations.");
+				}
 				const request = buildRequestFromInput(operation, parameters ?? {});
-
-				let apiPath = request.path;
-				if (!apiPath.startsWith("/api/") && !apiPath.startsWith("/x402/")) {
-					apiPath = `/api/v1${apiPath}`;
+				const requestBody = body ?? request.body;
+				if (operation.requestBodyRequired && requestBody === undefined) {
+					throw new Error("This OpenAPI operation requires a JSON request body. Use y2_get_openapi_operation to inspect its schema.");
 				}
 
-				const response = await client.request(apiPath, {
+				const response = await client.request(toApiPath(request.path), {
 					method: operation.method.toUpperCase(),
 					query: request.query,
 					headers: request.headers,
-					body: body ?? request.body,
+					body: requestBody,
+					auth: operation.requiresApiKey,
 				});
 
-				const text = await response.text();
-				if (!text) return textResult(formatJson({ status: response.status }, config));
-				const contentType = response.headers.get("content-type") ?? "";
-				if (contentType.includes("json")) {
-					try {
-						return textResult(formatJson(JSON.parse(text), config));
-					} catch {
-						return textResult(limitText(text, config.maxResponseChars));
-					}
-				}
-				return textResult(limitText(text, config.maxResponseChars));
+				return textResult(await formatResponse(response, config));
 			} catch (error) {
 				return errorResult(error, config);
 			}

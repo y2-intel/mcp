@@ -2,7 +2,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import type { Y2McpConfig } from "../config.js";
-import { errorResult, formatJson, limitText, textResult } from "../text.js";
+import { toApiPath } from "../openapi.js";
+import { errorResult, formatResponse, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
 import {
 	additiveExternalToolAnnotations,
@@ -47,7 +48,12 @@ const idempotencyKey = z
 	.min(8)
 	.max(200)
 	.regex(/^[A-Za-z0-9._:-]+$/)
-	.describe("Unique key to deduplicate automation runs, such as a UUID.");
+	.describe("Unique key to deduplicate requests, such as a UUID.");
+const ifMatch = z.string().min(1).optional().describe("ETag returned by Y2, for a conditional update or delete.");
+const cursor = z.string().min(1).optional().describe("Opaque cursor returned by a previous response.");
+const jsonFormat = z.enum(["json", "ndjson"]).optional().describe("Response representation.");
+const geoFormat = z.enum(["json", "ndjson", "geojson"]).optional().describe("Response representation.");
+const fields = z.string().min(1).optional().describe("Comma-separated fields to return for this resource type.");
 
 const stringFilter = (description: string) => z.string().min(1).max(512).optional().describe(description);
 const boolFilter = (description: string) => z.boolean().optional().describe(description);
@@ -93,6 +99,11 @@ const sourceTypeValues: [string, ...string[]] = [
 	"fred",
 	"yfinance",
 	"eia",
+	"nvd",
+	"cisa_kev",
+	"intel_expansion",
+	"intel_discovery",
+	"news_terminal",
 ];
 
 const finintCategoryValues: [string, ...string[]] = [
@@ -105,6 +116,12 @@ const finintCategoryValues: [string, ...string[]] = [
 	"inflation",
 	"labor",
 	"money_supply",
+	"credit",
+	"gdp",
+	"business",
+	"consumer",
+	"housing",
+	"fx",
 ];
 
 const entityKindValues: [string, ...string[]] = [
@@ -143,6 +160,7 @@ const incidentCategoryValues: [string, ...string[]] = [
 
 const priorityValues: [string, ...string[]] = ["low", "medium", "high", "critical"];
 const severityValues: [string, ...string[]] = ["low", "medium", "high", "critical"];
+const regionValues: [string, ...string[]] = ["mena", "africa", "latam", "asiapac", "europe", "namerica"];
 
 const readTools: ApiToolDefinition[] = [
 	{
@@ -231,7 +249,7 @@ const readTools: ApiToolDefinition[] = [
 		scopes: ["news:read"],
 		inputSchema: {
 			topics: stringList("Optional Y2 news topics to filter, sent as comma-separated values.", 12),
-			timeframe: stringFilter("Optional recap timeframe."),
+			timeframe: enumFilter(["12h", "24h", "3d", "7d"], "Optional recap timeframe."),
 		},
 		queryParams: ["topics", "timeframe"],
 		annotations: readOnlyExternalToolAnnotations,
@@ -253,11 +271,13 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/events",
 		scopes: ["osint:read"],
 		inputSchema: {
-			category: stringFilter("Optional OSINT event category."),
-			severity: stringFilter("Optional severity level."),
+			cursor,
+			format: geoFormat,
+			category: enumFilter(incidentCategoryValues, "Optional OSINT event category."),
+			severity: enumFilter(severityValues, "Optional severity level."),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["category", "severity", "limit"],
+		queryParams: ["category", "severity", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -268,10 +288,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/map",
 		scopes: ["osint:read"],
 		inputSchema: {
-			region: stringFilter("Optional geographic region."),
+			cursor,
+			format: geoFormat,
+			region: enumFilter(regionValues, "Optional geographic region."),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 500, defaultValue: 200 }),
 		},
-		queryParams: ["region", "limit"],
+		queryParams: ["region", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -282,11 +304,13 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/cii",
 		scopes: ["osint:read"],
 		inputSchema: {
-			region: stringFilter("Optional geographic region."),
-			category: stringFilter("Optional event category."),
+			cursor,
+			format: jsonFormat,
+			region: enumFilter(regionValues, "Optional geographic region."),
+			category: enumFilter(incidentCategoryValues, "Optional event category."),
 			limit: intFilter("Maximum items to return.", { minimum: 1, maximum: 100, defaultValue: 50 }),
 		},
-		queryParams: ["region", "category", "limit"],
+		queryParams: ["region", "category", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -319,6 +343,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/countries/{countryCode}/predictions",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: jsonFormat,
 			countryCode,
 			limit: intFilter("Maximum predictions to return.", {
 				minimum: 1,
@@ -327,7 +353,7 @@ const readTools: ApiToolDefinition[] = [
 			}),
 		},
 		pathParams: ["countryCode"],
-		queryParams: ["limit"],
+		queryParams: ["limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -338,6 +364,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/countries/{countryCode}/news",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: geoFormat,
 			countryCode,
 			limit: intFilter("Maximum news items to return.", {
 				minimum: 1,
@@ -346,7 +374,7 @@ const readTools: ApiToolDefinition[] = [
 			}),
 		},
 		pathParams: ["countryCode"],
-		queryParams: ["limit"],
+		queryParams: ["limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -368,9 +396,11 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/military-posture",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: geoFormat,
 			limit: intFilter("Maximum items to return.", { minimum: 1, maximum: 50, defaultValue: 20 }),
 		},
-		queryParams: ["limit"],
+		queryParams: ["limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -381,6 +411,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/aircraft",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: geoFormat,
 			theater: stringFilter('Optional theater ID, such as "iran", "taiwan", "blacksea", or "scs".'),
 			limit: intFilter("Maximum aircraft to return.", {
 				minimum: 1,
@@ -388,7 +420,7 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 100,
 			}),
 		},
-		queryParams: ["theater", "limit"],
+		queryParams: ["theater", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -399,10 +431,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/vessels",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: geoFormat,
 			region: stringFilter("Optional region name."),
 			limit: intFilter("Maximum vessels to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["region", "limit"],
+		queryParams: ["region", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -413,10 +447,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/gps-jamming",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: geoFormat,
 			severity: enumFilter(["low", "moderate", "severe", "critical"], "Optional interference severity."),
 			limit: intFilter("Maximum zones to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["severity", "limit"],
+		queryParams: ["severity", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -436,10 +472,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/cyber-threats",
 		scopes: ["osint:read"],
 		inputSchema: {
-			severity: stringFilter("Optional severity level."),
+			cursor,
+			format: jsonFormat,
+			severity: enumFilter(severityValues, "Optional severity level."),
 			limit: intFilter("Maximum threats to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["severity", "limit"],
+		queryParams: ["severity", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -450,10 +488,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/prediction-markets",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: jsonFormat,
 			countryCode: countryCode.optional(),
 			limit: intFilter("Maximum markets to return.", { minimum: 1, maximum: 100, defaultValue: 20 }),
 		},
-		queryParams: ["countryCode", "limit"],
+		queryParams: ["countryCode", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -464,12 +504,14 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/y2-events",
 		scopes: ["osint:read"],
 		inputSchema: {
-			category: stringFilter("Optional event category."),
-			severity: stringFilter("Optional severity level."),
+			cursor,
+			format: geoFormat,
+			category: enumFilter(incidentCategoryValues, "Optional event category."),
+			severity: enumFilter(severityValues, "Optional severity level."),
 			countryCode: countryCode.optional(),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["category", "severity", "countryCode", "limit"],
+		queryParams: ["category", "severity", "countryCode", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -480,16 +522,18 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/regional",
 		scopes: ["osint:read"],
 		inputSchema: {
-			q: stringFilter("Optional full-text search on title and description."),
-			region: stringFilter("Optional geographic region."),
+			cursor,
+			format: geoFormat,
+			q: z.string().min(1).max(200).optional().describe("Optional full-text search on title and description."),
+			region: enumFilter(regionValues, "Optional geographic region."),
 			countryCode: countryCode.optional(),
 			sourceType: enumFilter(sourceTypeValues, "Optional source type filter."),
-			category: stringFilter("Optional event category."),
-			severity: stringFilter("Optional severity level."),
+			category: enumFilter(incidentCategoryValues, "Optional event category."),
+			severity: enumFilter(severityValues, "Optional severity level."),
 			bbox: stringFilter('Optional bounding box as "minLon,minLat,maxLon,maxLat".'),
 			nearLat: numberFilter("Optional center latitude for radius filter.", -90, 90),
 			nearLon: numberFilter("Optional center longitude for radius filter.", -180, 180),
-			radiusKm: numberFilter("Optional radius in kilometers.", 0, 20_000),
+			radiusKm: z.number().gt(0).max(20_000).optional().describe("Optional radius in kilometers."),
 			requireCoordinates: boolFilter("When true, only return rows with coordinates."),
 			since: intFilter("Inclusive lower bound on eventTime in epoch milliseconds.", { minimum: 0 }),
 			until: intFilter("Inclusive upper bound on eventTime in epoch milliseconds.", { minimum: 0 }),
@@ -514,6 +558,8 @@ const readTools: ApiToolDefinition[] = [
 			"until",
 			"datetime",
 			"limit",
+			"cursor",
+			"format",
 		],
 		annotations: readOnlyExternalToolAnnotations,
 	},
@@ -525,6 +571,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/osint/finint",
 		scopes: ["osint:read"],
 		inputSchema: {
+			cursor,
+			format: jsonFormat,
 			category: enumFilter(finintCategoryValues, "Optional indicator category."),
 			source: enumFilter(["fred", "yfinance", "eia"], "Optional data source."),
 			dimensionType: enumFilter(["facility", "rto", "port", "state"], "Optional dimension type."),
@@ -534,7 +582,7 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 50,
 			}),
 		},
-		queryParams: ["category", "source", "dimensionType", "limit"],
+		queryParams: ["category", "source", "dimensionType", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -545,6 +593,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/incidents",
 		scopes: ["intel:explorer", "intel:finint", "intel:cyber"],
 		inputSchema: {
+			cursor,
+			"fields[incidents]": fields,
 			category: enumFilter(incidentCategoryValues, "Optional incident category."),
 			severity: enumFilter(severityValues, "Optional severity."),
 			status: enumFilter(["active", "resolved", "forecast"], "Optional lifecycle status."),
@@ -555,7 +605,7 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 50,
 			}),
 		},
-		queryParams: ["category", "severity", "status", "sinceMs", "limit"],
+		queryParams: ["category", "severity", "status", "sinceMs", "limit", "cursor", "fields[incidents]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -565,8 +615,16 @@ const readTools: ApiToolDefinition[] = [
 		method: "GET",
 		path: "/api/v2/incidents/{incidentId}",
 		scopes: ["intel:explorer", "intel:finint", "intel:cyber"],
-		inputSchema: { incidentId },
+		inputSchema: {
+			include: stringFilter("Comma-separated related resources to include."),
+			"fields[incidents]": fields,
+			"fields[observations]": fields,
+			"fields[markets]": fields,
+			"fields[entities]": fields,
+			incidentId,
+		},
 		pathParams: ["incidentId"],
+		queryParams: ["include", "fields[incidents]", "fields[observations]", "fields[markets]", "fields[entities]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -577,11 +635,13 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/entities",
 		scopes: ["intel:explorer"],
 		inputSchema: {
+			cursor,
+			"fields[entities]": fields,
 			kind: enumFilter(entityKindValues, "Optional entity kind."),
 			q: stringFilter("Optional full-text search across canonicalName."),
 			limit: intFilter("Maximum entities to return.", { minimum: 1, maximum: 500, defaultValue: 50 }),
 		},
-		queryParams: ["kind", "q", "limit"],
+		queryParams: ["kind", "q", "limit", "cursor", "fields[entities]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -591,8 +651,16 @@ const readTools: ApiToolDefinition[] = [
 		method: "GET",
 		path: "/api/v2/entities/{entityId}",
 		scopes: ["intel:explorer"],
-		inputSchema: { entityId },
+		inputSchema: {
+			include: stringFilter("Comma-separated related resources to include."),
+			"fields[entities]": fields,
+			"fields[incidents]": fields,
+			"fields[markets]": fields,
+			"fields[observations]": fields,
+			entityId,
+		},
 		pathParams: ["entityId"],
+		queryParams: ["include", "fields[entities]", "fields[incidents]", "fields[markets]", "fields[observations]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -623,11 +691,13 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/markets",
 		scopes: ["intel:finint"],
 		inputSchema: {
+			cursor,
+			"fields[markets]": fields,
 			source: enumFilter(["y2", "polymarket", "kalshi", "manifold", "derived"], "Optional market source."),
 			status: enumFilter(["open", "resolved", "cancelled"], "Optional lifecycle status."),
 			limit: intFilter("Maximum markets to return.", { minimum: 1, maximum: 500, defaultValue: 50 }),
 		},
-		queryParams: ["source", "status", "limit"],
+		queryParams: ["source", "status", "limit", "cursor", "fields[markets]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -638,6 +708,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/finint",
 		scopes: ["intel:finint"],
 		inputSchema: {
+			cursor,
+			"fields[finint]": fields,
 			dimensionType: enumFilter(["facility", "rto", "port", "state"], "Optional dimension type."),
 			dimension: stringFilter("Optional exact dimension key, such as PJM, vogtle, or houston."),
 			indicatorId: stringFilter("Optional exact indicator key, such as EIA:WTI or FRED:DGS10."),
@@ -649,7 +721,7 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 100,
 			}),
 		},
-		queryParams: ["dimensionType", "dimension", "indicatorId", "category", "source", "limit"],
+		queryParams: ["dimensionType", "dimension", "indicatorId", "category", "source", "limit", "cursor", "fields[finint]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -660,6 +732,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/signals",
 		scopes: ["intel:explorer", "intel:finint", "intel:cyber"],
 		inputSchema: {
+			cursor,
+			"fields[signals]": fields,
 			domain: enumFilter(
 				[
 					"cyber",
@@ -719,6 +793,8 @@ const readTools: ApiToolDefinition[] = [
 			"profileId",
 			"reportId",
 			"limit",
+			"cursor",
+			"fields[signals]",
 		],
 		annotations: readOnlyExternalToolAnnotations,
 	},
@@ -750,10 +826,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/cyber/cves",
 		scopes: ["intel:cyber"],
 		inputSchema: {
+			cursor,
+			"fields[entities]": fields,
 			q: stringFilter("Optional full-text search on canonicalName, such as CVE-YYYY-NNNN."),
 			limit: intFilter("Maximum CVEs to return.", { minimum: 1, maximum: 500, defaultValue: 50 }),
 		},
-		queryParams: ["q", "limit"],
+		queryParams: ["q", "limit", "cursor", "fields[entities]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -764,6 +842,8 @@ const readTools: ApiToolDefinition[] = [
 		path: "/api/v2/cyber/actors",
 		scopes: ["intel:cyber"],
 		inputSchema: {
+			cursor,
+			"fields[entities]": fields,
 			q: stringFilter("Optional full-text search on canonicalName."),
 			limit: intFilter("Maximum threat actors to return.", {
 				minimum: 1,
@@ -771,18 +851,19 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 50,
 			}),
 		},
-		queryParams: ["q", "limit"],
+		queryParams: ["q", "limit", "cursor", "fields[entities]"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
 		name: "y2_list_changes_v2",
 		title: "List Intel Changes",
 		description:
-			"List incremental change events with a resumable watermark checkpoint. Requires intel:explorer, intel:finint, or intel:cyber.",
+			"List incremental change events with a resumable watermark checkpoint. Requires osint:read.",
 		method: "GET",
 		path: "/api/v2/changes",
-		scopes: ["intel:explorer", "intel:finint", "intel:cyber"],
+		scopes: ["osint:read"],
 		inputSchema: {
+			format: jsonFormat,
 			watermark: stringFilter(
 				"Optional exclusive checkpoint returned by an earlier response for incremental polling.",
 			),
@@ -792,17 +873,17 @@ const readTools: ApiToolDefinition[] = [
 				defaultValue: 100,
 			}),
 		},
-		queryParams: ["watermark", "limit"],
+		queryParams: ["watermark", "limit", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
 		name: "y2_retrieve_knowledge_v2",
 		title: "Retrieve Global Knowledge",
 		description:
-			"Retrieve grounded Y2 global knowledge passages with canonical references. Requires intel:explorer.",
+			"Retrieve grounded Y2 global knowledge passages with canonical references. Requires intel:knowledge.",
 		method: "POST",
 		path: "/api/v2/intel/knowledge/retrieve",
-		scopes: ["intel:explorer"],
+		scopes: ["intel:knowledge"],
 		inputSchema: {
 			body: jsonBody("GlobalKnowledgeRetrievalRequest JSON body from the Y2 OpenAPI schema."),
 		},
@@ -817,10 +898,11 @@ const readTools: ApiToolDefinition[] = [
 		path: "/projects",
 		scopes: ["projects:read"],
 		inputSchema: {
-			status: stringFilter("Optional project status filter."),
-			limit: intFilter("Maximum projects to return.", { minimum: 1, maximum: 100, defaultValue: 20 }),
+			cursor,
+			status: enumFilter(["active", "archived"], "Optional project status filter."),
+			limit: intFilter("Maximum projects to return.", { minimum: 1, maximum: 50, defaultValue: 20 }),
 		},
-		queryParams: ["status", "limit"],
+		queryParams: ["status", "limit", "cursor"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -842,15 +924,16 @@ const readTools: ApiToolDefinition[] = [
 		path: "/automations",
 		scopes: ["automations:read"],
 		inputSchema: {
+			cursor,
 			projectId: projectId.optional().describe("Optional project ID filter."),
-			status: stringFilter("Optional automation status filter."),
+			status: enumFilter(["draft", "active", "paused", "archived"], "Optional automation status filter."),
 			limit: intFilter("Maximum automations to return.", {
 				minimum: 1,
-				maximum: 100,
-				defaultValue: 20,
+				maximum: 50,
+				defaultValue: 30,
 			}),
 		},
-		queryParams: ["projectId", "status", "limit"],
+		queryParams: ["projectId", "status", "limit", "cursor"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -872,11 +955,12 @@ const readTools: ApiToolDefinition[] = [
 		path: "/automations/{automationId}/runs",
 		scopes: ["automations:read"],
 		inputSchema: {
+			cursor,
 			automationId,
-			limit: intFilter("Maximum runs to return.", { minimum: 1, maximum: 100, defaultValue: 20 }),
+			limit: intFilter("Maximum runs to return.", { minimum: 1, maximum: 50, defaultValue: 30 }),
 		},
 		pathParams: ["automationId"],
-		queryParams: ["limit"],
+		queryParams: ["limit", "cursor"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -901,9 +985,11 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/profiles",
 		scopes: ["profiles:write"],
 		inputSchema: {
+			idempotencyKey: idempotencyKey.optional(),
 			body: jsonBody("ProfileCreateRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		bodyParam: "body",
+		headerParams: ["idempotencyKey:Idempotency-Key"],
 		annotations: additiveExternalToolAnnotations,
 	},
 	{
@@ -915,11 +1001,13 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/profiles/{profileId}",
 		scopes: ["profiles:write"],
 		inputSchema: {
+			ifMatch,
 			profileId,
-			body: jsonBody("ProfileUpdateRequest JSON body from the Y2 OpenAPI schema."),
+			body: jsonBody("ProfileReplaceRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		pathParams: ["profileId"],
 		bodyParam: "body",
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -931,11 +1019,13 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/profiles/{profileId}",
 		scopes: ["profiles:write"],
 		inputSchema: {
+			ifMatch,
 			profileId,
 			body: jsonBody("ProfileUpdateRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		pathParams: ["profileId"],
 		bodyParam: "body",
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -945,8 +1035,12 @@ const writeTools: ApiToolDefinition[] = [
 		method: "DELETE",
 		path: "/profiles/{profileId}",
 		scopes: ["profiles:write"],
-		inputSchema: { profileId },
+		inputSchema: {
+			ifMatch,
+			profileId,
+		},
 		pathParams: ["profileId"],
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -957,9 +1051,11 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/webhooks",
 		scopes: ["webhooks:manage"],
 		inputSchema: {
+			idempotencyKey: idempotencyKey.optional(),
 			body: jsonBody("WebhookCreateRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		bodyParam: "body",
+		headerParams: ["idempotencyKey:Idempotency-Key"],
 		annotations: additiveExternalToolAnnotations,
 	},
 	{
@@ -970,11 +1066,13 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/webhooks/{webhookId}",
 		scopes: ["webhooks:manage"],
 		inputSchema: {
+			ifMatch,
 			webhookId,
-			body: jsonBody("WebhookUpdateRequest JSON body from the Y2 OpenAPI schema."),
+			body: jsonBody("WebhookReplaceRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		pathParams: ["webhookId"],
 		bodyParam: "body",
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -984,8 +1082,12 @@ const writeTools: ApiToolDefinition[] = [
 		method: "DELETE",
 		path: "/webhooks/{webhookId}",
 		scopes: ["webhooks:manage"],
-		inputSchema: { webhookId },
+		inputSchema: {
+			ifMatch,
+			webhookId,
+		},
 		pathParams: ["webhookId"],
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -1023,9 +1125,11 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/projects",
 		scopes: ["projects:write"],
 		inputSchema: {
+			idempotencyKey: idempotencyKey.optional(),
 			body: jsonBody("ProjectCreateRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		bodyParam: "body",
+		headerParams: ["idempotencyKey:Idempotency-Key"],
 		annotations: additiveExternalToolAnnotations,
 	},
 	{
@@ -1036,11 +1140,13 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/projects/{projectId}",
 		scopes: ["projects:write"],
 		inputSchema: {
+			ifMatch,
 			projectId,
 			body: jsonBody("ProjectPatchRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		pathParams: ["projectId"],
 		bodyParam: "body",
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -1051,9 +1157,11 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/automations",
 		scopes: ["automations:write"],
 		inputSchema: {
+			idempotencyKey: idempotencyKey.optional(),
 			body: jsonBody("AutomationCreateRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		bodyParam: "body",
+		headerParams: ["idempotencyKey:Idempotency-Key"],
 		annotations: additiveExternalToolAnnotations,
 	},
 	{
@@ -1064,11 +1172,13 @@ const writeTools: ApiToolDefinition[] = [
 		path: "/automations/{automationId}",
 		scopes: ["automations:write"],
 		inputSchema: {
+			ifMatch,
 			automationId,
 			body: jsonBody("AutomationPatchRequest JSON body from the Y2 OpenAPI schema."),
 		},
 		pathParams: ["automationId"],
 		bodyParam: "body",
+		headerParams: ["ifMatch:If-Match"],
 		annotations: destructiveExternalToolAnnotations,
 	},
 	{
@@ -1085,15 +1195,6 @@ const writeTools: ApiToolDefinition[] = [
 		annotations: additiveExternalToolAnnotations,
 	},
 ];
-
-function toApiPath(openApiPath: string): string {
-	if (openApiPath.startsWith("/api/v2/")) {
-		return openApiPath;
-	}
-	// x402 receipt routes are served under /api/v1 even though the OpenAPI
-	// document (like every v1 resource) omits the prefix.
-	return `/api/v1${openApiPath}`;
-}
 
 function appendDefinedQuery(query: Record<string, string | undefined>, name: string, value: unknown) {
 	if (value === undefined || value === null) return;
@@ -1132,32 +1233,6 @@ function buildOperation(operation: ApiToolDefinition, input: ToolInput): {
 	}
 
 	return { path, query, headers };
-}
-
-async function formatResponse(response: Response, config: Y2McpConfig): Promise<string> {
-	if (response.status >= 300 && response.status < 400) {
-		return formatJson(
-			{
-				status: response.status,
-				location: response.headers.get("location"),
-			},
-			config,
-		);
-	}
-
-	const text = await response.text();
-	if (!text) return formatJson({ status: response.status }, config);
-
-	const contentType = response.headers.get("content-type") ?? "";
-	if (contentType.includes("json")) {
-		try {
-			return formatJson(JSON.parse(text), config);
-		} catch {
-			return limitText(text, config.maxResponseChars);
-		}
-	}
-
-	return limitText(text, config.maxResponseChars);
 }
 
 async function callApiTool(

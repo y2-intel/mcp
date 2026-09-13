@@ -57,6 +57,7 @@ describe("createServer", () => {
 			assert.ok(tools.includes(toolName), toolName);
 		}
 		assert.equal(tools.includes("y2_ask_agent"), false);
+		assert.equal(tools.includes("y2_create_chat_completion"), false);
 		for (const toolName of expandedWriteToolNames) {
 			assert.equal(tools.includes(toolName), false, toolName);
 		}
@@ -65,6 +66,7 @@ describe("createServer", () => {
 	it("exposes Agent Y2 only when explicitly enabled", async () => {
 		const tools = await listToolNames({ Y2_MCP_ENABLE_AGENT: "1" });
 		assert.ok(tools.includes("y2_ask_agent"));
+		assert.ok(tools.includes("y2_create_chat_completion"));
 	});
 
 	it("advertises read-only hints for default external API tools", async () => {
@@ -203,5 +205,33 @@ describe("createServer", () => {
 				assert.deepEqual(await requests[0].json(), { status: "paused" });
 			},
 		);
+	});
+
+	it("preserves Markdown, NDJSON, and streaming tool-call responses", async () => {
+		const requests: Request[] = [];
+		const cases = [
+			{ name: "y2_get_report", args: { reportId: "rpt-1", format: "markdown", include: "content,sources", view: "agent" }, contentType: "text/markdown", text: "# Report\n\nFindings" },
+			{ name: "y2_list_reports", args: { cursor: "next-reports", format: "ndjson" }, contentType: "application/x-ndjson", text: '{"id":1}\n{"id":2}\n' },
+			{ name: "y2_list_news", args: { cursor: "next-news", format: "ndjson" }, contentType: "application/x-ndjson", text: '{"headline":"First"}\n{"headline":"Second"}\n' },
+			{ name: "y2_create_chat_completion", args: { body: { messages: [{ role: "user", content: "Find reports" }], stream: true } }, contentType: "text/event-stream", text: 'data: {"choices":[{"delta":{"tool_calls":[{"id":"call_1","function":{"name":"find_reports"}}]}}]}\n\ndata: [DONE]\n\n' },
+			{ name: "y2_list_news", args: { format: "ndjson" }, contentType: "application/x-ndjson", text: '{"headline":"Only one row"}\n' },
+		] as const;
+		await withClient({ Y2_API_KEY: "y2_test", Y2_MCP_ENABLE_AGENT: "1" }, async (client) => {
+			for (const entry of cases) {
+				globalThis.fetch = async (input, init) => {
+					requests.push(new Request(input, init));
+					return new Response(entry.text, { headers: { "content-type": entry.contentType } });
+				};
+				const result = await client.callTool({ name: entry.name, arguments: entry.args });
+				assert.equal(result.isError, undefined, entry.name);
+				assert.deepEqual(result.content, [{ type: "text", text: entry.text }], entry.name);
+			}
+		});
+		assert.equal(new URL(requests[0].url).searchParams.get("include"), "content,sources");
+		assert.equal(new URL(requests[0].url).searchParams.get("view"), "agent");
+		assert.equal(new URL(requests[1].url).searchParams.get("cursor"), "next-reports");
+		assert.equal(new URL(requests[2].url).searchParams.get("cursor"), "next-news");
+		assert.equal(new URL(requests[3].url).pathname, "/api/v1/chat/completions");
+		assert.deepEqual(await requests[3].json(), cases[3].args.body);
 	});
 });

@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- Updated npm dependencies within the supported version ranges.
+- Synchronized all 65 published operations with typed MCP tools, including
+  OpenAI-compatible chat completions behind the Agent Y2 opt-in.
+- Added pagination, response formats, sparse fieldsets, expansions, conditional
+  headers, and creation idempotency keys. Updated filter enums, list limits,
+  replacement-body documentation, and knowledge/change-feed scope descriptions.
+- Enforced write and Agent Y2 opt-ins in `y2_call_api`, corrected its public x402
+  receipt route/auth handling, and rejected missing required parameters/bodies.
+- Exposed resolved request-body schemas and scopes in OpenAPI inspection, with
+  inherited parameter overrides and bounded recursive schema resolution.
+- Added a live OpenAPI contract gate to release checks and CI. Preserved Markdown,
+  NDJSON, and chat tool-call streams in tool responses.
+- Made the Inspector missing-key check independent of the caller's API key and
+  fail if the expected tool error is absent.
+
 ## 0.2.0
 
 - Added spec-driven `y2_list_api_operations` and `y2_call_api` tools that build

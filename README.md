@@ -48,14 +48,24 @@ export Y2_MCP_ENABLE_WRITE_TOOLS=1
   OpenAPI document (operationId, method, path). No API key required.
 - `y2_call_api` — call any operation by `operationId` (or path + method); path,
   query, and header parameters and JSON bodies are built from the live spec.
-- `y2_get_openapi_operation` — inspect one resolved OpenAPI operation.
+  Write and Agent Y2 operations require their respective opt-in flags.
+- `y2_get_openapi_operation` — inspect one resolved OpenAPI operation, including
+  required scopes, parameters, and the JSON request-body schema.
 - Typed tools for reports (`y2_list_reports`, `y2_get_report`, signals, graph,
   audio), projects, automations, webhooks, news, recaps, feeds, OSINT (events,
   map, CII, country briefs, aircraft, vessels, GPS jamming, cyber threats,
   prediction markets), intel v2 (incidents, entities, graphs, markets, FinInt,
   signals, CVEs, threat actors, change watermarks, knowledge retrieval), and the
   public x402 receipt lookup.
-- Optional `y2_ask_agent` for Agent Y2 when enabled.
+- Optional `y2_ask_agent` and `y2_create_chat_completion` for Agent Y2 when enabled.
+  The chat-completion tool accepts the OpenAI-compatible request body and returns
+  the event stream, preserving client tool calls.
+
+Typed tools expose the published pagination cursors, response formats, expansions,
+and sparse `fields[...]` parameters where supported. Creation tools accept
+`idempotencyKey`; conditional update/delete tools accept `ifMatch`. With
+`y2_call_api`, use the original OpenAPI header names (`Idempotency-Key`, `If-Match`)
+inside `parameters`. Report listing retains its documented MCP cap of 5 results.
 
 ## Clients
 
@@ -104,9 +114,15 @@ served from `https://y2.dev/api/openapi.yaml`.
 | `y2_list_osint_*`, `y2_get_country_*`, `y2_list_aircraft`, `y2_list_vessels`, `y2_list_finint_indicators` | Situation Room OSINT, country, military, cyber-threat, market, and FinInt read endpoints | `osint:read` |
 | `y2_list_incidents_v2`, `y2_get_incident_v2`, `y2_list_entities_v2`, `y2_get_entity_v2`, `y2_get_entity_graph_v2`, `y2_list_markets_v2`, `y2_list_finint_intel_v2`, `y2_list_signals_v2`, `y2_get_cyber_graph_v2`, `y2_list_cves_v2`, `y2_list_threat_actors_v2` | Intel v2 explorer, market, FinInt, signal, and cyber endpoints | `intel:explorer`, `intel:finint`, or `intel:cyber` depending on endpoint |
 | `y2_list_webhooks` | List webhook configurations | `webhooks:manage` |
+| `y2_list_projects`, `y2_get_project` | Project listing and detail | `projects:read` |
+| `y2_list_automations`, `y2_get_automation`, `y2_list_automation_runs` | Automation definitions and run history | `automations:read` |
+| `y2_list_changes_v2` | Incremental change watermarks | `osint:read` |
+| `y2_retrieve_knowledge_v2` | Global Knowledge retrieval | `intel:knowledge` |
 | `y2_get_x402_receipt` | Public x402 receipt lookup | none |
 | `y2_create_profile`, `y2_update_profile`, `y2_patch_profile`, `y2_delete_profile`, `y2_create_webhook`, `y2_update_webhook`, `y2_delete_webhook`, `y2_test_webhook`, `y2_update_delivery` | Profile, webhook, and delivery mutation endpoints | required write/manage scope plus `Y2_MCP_ENABLE_WRITE_TOOLS=1` |
+| `y2_create_project`, `y2_patch_project`, `y2_create_automation`, `y2_patch_automation`, `y2_run_automation` | Project and Automation mutations | `projects:write` or `automations:write` plus `Y2_MCP_ENABLE_WRITE_TOOLS=1` |
 | `y2_ask_agent` | `POST /api/v1/agent-y2/chat/stream` | `agent:y2` plus `Y2_MCP_ENABLE_AGENT=1` |
+| `y2_create_chat_completion` | `POST /api/v1/chat/completions` | `agent:y2` plus `Y2_MCP_ENABLE_AGENT=1` |
 
 OpenAPI v1 paths are relative to `https://api.y2.dev/api/v1`, so both
 `/reports` and `/api/v1/reports` work with `y2_get_openapi_operation`. Agent Y2
@@ -132,8 +148,23 @@ npm run release:check
 ```
 
 `release:check` builds the package, typechecks scripts and tests, runs unit
-tests, performs `npm pack --dry-run`, and exercises tools/resources/prompts
-through MCP Inspector.
+tests and the live OpenAPI contract check, performs `npm pack --dry-run`, and
+exercises tools/resources/prompts through MCP Inspector.
+
+Check contract alignment independently:
+
+```sh
+npm run check:openapi
+# Or check a previously downloaded document:
+npm run check:openapi -- /path/to/openapi.yaml
+```
+
+This downloads only the public spec, then checks discovery, operation coverage,
+routing, auth requirements, scope descriptions, parameter forwarding, enums, and
+numeric bounds through an in-memory MCP client. All API calls are mocked; it does
+not require an API key or execute account actions. The check is part of CI and
+fails when published operations or typed parameters drift. It does not establish
+authenticated API acceptance or validate response payloads against the spec.
 
 Run live API smoke tests after exporting a scoped key:
 
@@ -152,7 +183,7 @@ Y2_MCP_SMOKE_TOOLS=agent npm run smoke:live
 
 ## Release
 
-Before publishing v0.1.0:
+Before publishing:
 
 1. Run `npm ci && npm run release:check`.
 2. Confirm GitHub Actions `CI` passes on `main`.
