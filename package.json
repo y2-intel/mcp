@@ -41,7 +41,7 @@
 		"check:openapi": "node --import tsx scripts/check-openapi.ts",
 		"dev": "tsx src/index.ts",
 		"inspect:all": "npm run inspect:tools && npm run inspect:resources && npm run inspect:prompts && npm run inspect:openapi && npm run inspect:no-key-error",
-		"inspect:no-key-error": "env -u Y2_API_KEY npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/call --tool-name y2_list_reports --tool-arg limit=1; code=$?; if [ $code -eq 5 ]; then echo 'expected no-key tool error observed (exit 5)'; else echo \"expected exit 5, got $code\" >&2; exit 1; fi",
+		"inspect:no-key-error": "node --import tsx scripts/check-no-key.ts",
 		"inspect:openapi": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/call --tool-name y2_get_openapi_operation --tool-arg operationId=listReports",
 		"inspect:prompts": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method prompts/list",
 		"inspect:resources": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/list",
