@@ -1,6 +1,6 @@
 {
 	"name": "@y2-intel/mcp",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "MCP server for connecting AI agents to Y2",
 	"type": "module",
 	"license": "Apache-2.0",
@@ -47,24 +47,41 @@
 		"inspect:resources": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/list",
 		"inspect:tools": "npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list",
 		"prepublishOnly": "npm run release:check",
-		"release:check": "npm run build && npm run typecheck:extras && npm test && npm run check:openapi && npm pack --dry-run && npm run inspect:all",
+		"release:check": "npm run build && npm run typecheck:extras && npm run build:native && npm test && npm run check:openapi && npm run check:plugins && npm pack --dry-run && npm run inspect:all",
 		"smoke:live": "tsx scripts/smoke-live.ts",
-		"test": "tsx --test test/*.test.ts",
+		"test": "node --import tsx --test test/*.test.ts test/native/*.test.ts",
 		"typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck:extras",
-		"typecheck:extras": "tsc --ignoreConfig --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 --strict --skipLibCheck --types node scripts/*.ts test/*.ts"
+		"typecheck:extras": "tsc -p tsconfig.tests.json",
+		"build:ui": "vite build",
+		"typecheck:native": "tsc -p tsconfig.worker.json && tsc -p tsconfig.ui.json",
+		"build:native": "npm run typecheck:native && npm run build:ui",
+		"deploy:native": "npm run build:native && wrangler deploy",
+		"check:plugins": "node scripts/check-plugins.mjs",
+		"pack:plugins": "node scripts/pack-plugins.mjs"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"dependencies": {
+		"@cloudflare/workers-oauth-provider": "^1.2.1",
+		"@modelcontextprotocol/client": "^2.3.1",
+		"@modelcontextprotocol/ext-apps": "^2.0.3",
 		"@modelcontextprotocol/sdk": "^1.29.0",
+		"@modelcontextprotocol/server": "^2.3.1",
+		"maplibre-gl": "^6.12.0",
 		"yaml": "^2.9.0",
-		"zod": "^3.25.76"
+		"zod": "^4.6.5"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20261005.1",
 		"@types/node": "^26.0.1",
+		"ajv": "^8.20.0",
+		"esbuild": "^0.28.2",
+		"miniflare": "^5.20261001.0-alpha",
 		"tsx": "^4.22.4",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"vite": "^8.3.2",
+		"wrangler": "^4.147.0"
 	},
 	"engines": {
 		"node": ">=20"

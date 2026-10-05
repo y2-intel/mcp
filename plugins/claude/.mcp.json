@@ -1,0 +1,5 @@
+{
+	"mcpServers": {
+		"y2-intel": { "type": "http", "url": "https://y2-intel-mcp.managed-services.workers.dev/mcp" }
+	}
+}

@@ -1,34 +1,18 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import type { Y2McpConfig } from "../config.js";
 import { toApiPath } from "../openapi.js";
 import { errorResult, formatResponse, textResult } from "../text.js";
 import type { Y2Client } from "../y2-client.js";
+import type { ApiToolDefinition } from "./api-definition.js";
+import { intelV2ReadTools, intelV2WriteTools } from "./intel-v2.js";
 import {
 	additiveExternalToolAnnotations,
 	destructiveExternalToolAnnotations,
 	readOnlyExternalToolAnnotations,
 } from "./metadata.js";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type ToolInput = Record<string, unknown>;
-
-type ApiToolDefinition = {
-	name: string;
-	title: string;
-	description: string;
-	method: HttpMethod;
-	path: string;
-	scopes?: string[];
-	inputSchema?: z.ZodRawShape;
-	pathParams?: string[];
-	queryParams?: string[];
-	bodyParam?: string;
-	headerParams?: string[];
-	auth?: boolean;
-	annotations: ToolAnnotations;
-};
 
 const reportId = z.string().min(1).max(256).describe("Y2 report ID.");
 const profileId = z.string().min(1).max(256).describe("Y2 profile ID.");
@@ -77,7 +61,7 @@ const enumFilter = <T extends [string, ...string[]]>(values: T, description: str
 	z.enum(values).optional().describe(description);
 const stringList = (description: string, maxItems = 24) =>
 	z.array(z.string().min(1).max(128)).max(maxItems).optional().describe(description);
-const jsonBody = (description: string) => z.record(z.unknown()).describe(description);
+const jsonBody = (description: string) => z.record(z.string(), z.unknown()).describe(description);
 
 const sourceTypeValues: [string, ...string[]] = [
 	"usgs",
@@ -163,6 +147,7 @@ const severityValues: [string, ...string[]] = ["low", "medium", "high", "critica
 const regionValues: [string, ...string[]] = ["mena", "africa", "latam", "asiapac", "europe", "namerica"];
 
 const readTools: ApiToolDefinition[] = [
+	...intelV2ReadTools,
 	{
 		name: "y2_get_report_signals",
 		title: "Get Report Signals",
@@ -229,6 +214,31 @@ const readTools: ApiToolDefinition[] = [
 		method: "GET",
 		path: "/profiles",
 		scopes: ["profiles:read"],
+		inputSchema: {
+			limit: intFilter("Maximum subscription rows examined in one page.", {
+				minimum: 1,
+				maximum: 50,
+				defaultValue: 20,
+			}),
+			cursor,
+			q: z.string().min(1).max(200).optional()
+				.describe("Case-insensitive substring in profile name, topic, or tags."),
+		},
+		queryParams: ["limit", "cursor", "q"],
+		annotations: readOnlyExternalToolAnnotations,
+	},
+	{
+		name: "y2_get_profile",
+		title: "Get Profile",
+		description: "Get one subscribed intelligence profile by its stable public ID. Requires profiles:read.",
+		method: "GET",
+		path: "/profiles/{profileId}",
+		scopes: ["profiles:read"],
+		inputSchema: {
+			profileId: z.string().regex(/^prf_[a-f0-9]{24}$/)
+				.describe("Stable public profile ID returned by y2_list_profiles."),
+		},
+		pathParams: ["profileId"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -977,6 +987,7 @@ const readTools: ApiToolDefinition[] = [
 ];
 
 const writeTools: ApiToolDefinition[] = [
+	...intelV2WriteTools,
 	{
 		name: "y2_create_profile",
 		title: "Create Profile",

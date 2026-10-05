@@ -10,7 +10,7 @@ import { registerPrompts } from "./tools/prompts.js";
 import { registerReportTools } from "./tools/reports.js";
 import { Y2Client } from "./y2-client.js";
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 
 export function createServer(config: Y2McpConfig): McpServer {
 	const server = new McpServer({

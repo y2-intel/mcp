@@ -1,0 +1,288 @@
+:root {
+	--y2-bg: #f7fafb;
+	--y2-panel: #fff;
+	--y2-text: #122a39;
+	--y2-muted: #486070;
+	--y2-border: #ccd9e1;
+	--y2-button: #eef4f7;
+	--y2-hover: #dce9f0;
+	--y2-accent: #087665;
+	font: 14px / 1.5 var(--font-sans, system-ui, sans-serif);
+	color: var(--color-text-primary, var(--y2-text));
+	background: var(--color-background-primary, var(--y2-bg));
+	color-scheme: light;
+}
+:root[data-theme="dark"] {
+	--y2-bg: #101a24;
+	--y2-panel: #162530;
+	--y2-text: #e8eef3;
+	--y2-muted: #b2c0cc;
+	--y2-border: #344c5d;
+	--y2-button: #213442;
+	--y2-hover: #30495b;
+	--y2-accent: #55dec2;
+	color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) {
+		--y2-bg: #101a24;
+		--y2-panel: #162530;
+		--y2-text: #e8eef3;
+		--y2-muted: #b2c0cc;
+		--y2-border: #344c5d;
+		--y2-button: #213442;
+		--y2-hover: #30495b;
+		--y2-accent: #55dec2;
+		color-scheme: dark;
+	}
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+}
+main {
+	max-width: 1100px;
+	margin: auto;
+	padding: 12px;
+}
+.app-header,
+.identity,
+#controls,
+#map-filters,
+.actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.app-header {
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+.identity {
+	flex-wrap: nowrap;
+	gap: 10px;
+}
+.logo {
+	flex: none;
+	width: 36px;
+	height: 36px;
+	border-radius: 9px;
+}
+.muted,
+small,
+#legend {
+	color: var(--color-text-secondary, var(--y2-muted));
+	font-size: 12px;
+}
+h1 {
+	font-size: 15px;
+	line-height: 1.2;
+	font-weight: 600;
+	margin: 0;
+}
+h2 {
+	font-size: 15px;
+	line-height: 1.4;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+p {
+	margin: 8px 0;
+	overflow-wrap: anywhere;
+}
+button,
+select {
+	font: inherit;
+	color: inherit;
+	background: var(--color-background-secondary, var(--y2-button));
+	border: 1px solid var(--color-border-primary, var(--y2-border));
+	border-radius: 7px;
+	padding: 8px 12px;
+	cursor: pointer;
+	min-height: 44px;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+}
+button:hover {
+	background: var(--color-background-tertiary, var(--y2-hover));
+}
+button:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+button:focus-visible,
+select:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+pre:focus-visible {
+	outline: 3px solid var(--color-ring-primary, var(--y2-accent));
+	outline-offset: 3px;
+}
+article:focus-visible {
+	outline: 3px solid var(--color-ring-primary, var(--y2-accent));
+	outline-offset: 3px;
+}
+summary {
+	cursor: pointer;
+	padding: 12px 0;
+	font-size: 12px;
+	color: var(--color-text-secondary, var(--y2-muted));
+}
+#controls {
+	gap: 2px;
+}
+#open-y2 {
+	color: var(--y2-accent);
+}
+.result-toolbar {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 0 12px;
+	margin-top: 8px;
+}
+#status {
+	flex: 1;
+	font-size: 12px;
+	color: var(--color-text-secondary, var(--y2-muted));
+}
+#options {
+	margin-left: auto;
+}
+#options[open] {
+	flex-basis: 100%;
+}
+#options > summary {
+	text-align: right;
+}
+.options-panel {
+	padding: 12px;
+	border: 1px solid var(--color-border-primary, var(--y2-border));
+	border-radius: 9px;
+	margin-bottom: 8px;
+}
+#priority-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	font-size: 12px;
+}
+#map-filters {
+	align-items: end;
+	margin-bottom: 12px;
+}
+#map-filters label {
+	display: grid;
+	gap: 4px;
+	font-size: 12px;
+}
+#map {
+	height: clamp(320px, 50vh, 460px);
+	border: 1px solid var(--y2-border);
+	border-radius: 10px;
+	overflow: hidden;
+}
+:root[data-display-mode="fullscreen"] #map {
+	height: min(65vh, 640px);
+}
+#items {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+	gap: 8px;
+	margin: 4px 0 12px;
+}
+article {
+	min-width: 0;
+	padding: 12px;
+	border: 1px solid var(--color-border-primary, var(--y2-border));
+	border-radius: 10px;
+	background: var(--color-background-primary, var(--y2-panel));
+}
+.actions {
+	margin-top: 8px;
+	gap: 6px;
+}
+.actions button {
+	font-size: 12px;
+	text-align: left;
+}
+.card-heading {
+	display: flex;
+	align-items: start;
+	gap: 8px;
+}
+.card-heading h2 {
+	flex: 1;
+}
+.priority {
+	flex: none;
+	font-size: 11px;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: var(--color-background-secondary, var(--y2-button));
+	text-transform: capitalize;
+}
+.card-summary {
+	font-size: 13px;
+}
+.card-details {
+	font-size: 13px;
+}
+.card-details .actions {
+	margin: 0;
+}
+.card-details p:first-of-type {
+	margin-top: 0;
+}
+pre {
+	white-space: pre-wrap;
+	font: inherit;
+	max-height: 500px;
+	overflow: auto;
+	overflow-wrap: anywhere;
+}
+.maplibregl-popup-content {
+	color: #101a24;
+	max-width: 260px;
+}
+.maplibregl-ctrl button {
+	min-height: 0;
+}
+.maplibregl-ctrl-group button {
+	width: 36px;
+	height: 36px;
+}
+#controls button {
+	font-size: 12px;
+	background: transparent;
+	border-color: transparent;
+	padding: 6px 8px;
+}
+#controls button:hover {
+	background: var(--color-background-secondary, var(--y2-button));
+}
+#more {
+	width: 100%;
+}
+[hidden] {
+	/* biome-ignore lint/complexity/noImportantStyles: Hidden content must override flex and grid display rules. */
+	display: none !important;
+}
+@media (max-width: 480px) {
+	main {
+		padding: 10px;
+	}
+	#map {
+		height: 340px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	* {
+		/* biome-ignore lint/complexity/noImportantStyles: Respect reduced motion over component scroll behavior. */
+		scroll-behavior: auto !important;
+	}
+}

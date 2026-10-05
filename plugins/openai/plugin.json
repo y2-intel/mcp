@@ -1,0 +1,99 @@
+{
+	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+	"name": "y2-intel",
+	"version": "0.3.0",
+	"description": "Find and explore your Y2 intelligence profiles, reports, geographic events, entities, and sourced signals.",
+	"author": {
+		"name": "Y2 Intel",
+		"url": "https://y2.dev",
+		"email": "support@y2.dev"
+	},
+	"homepage": "https://y2.dev/docs/api/mcp",
+	"repository": "https://github.com/y2-intel/mcp",
+	"license": "Apache-2.0",
+	"keywords": [
+		"intelligence",
+		"research",
+		"gis",
+		"signals"
+	],
+	"extensions": {
+		"com.openai": {
+			"interface": {
+				"displayName": "Y2 Intel",
+				"shortDescription": "Profiles, maps, and signals",
+				"longDescription": "Connect a Y2 workspace to find subscribed intelligence profiles, read existing reports with citations, explore entities and signals, and view geographic events on an interactive map. Choose the read permissions you grant and disconnect at any time in Y2 Settings \u2192 Connections. Access follows your workspace membership and existing entitlements. Source coverage and freshness vary; results preserve their event, publication, or extraction time basis. This integration retrieves existing intelligence and does not generate reports, modify records, make purchases, or collect your device location.",
+				"developerName": "Y2 Intel",
+				"category": "Productivity",
+				"capabilities": [
+					"Read"
+				],
+				"websiteURL": "https://y2.dev",
+				"supportURL": "https://y2.dev/contact",
+				"privacyPolicyURL": "https://y2.dev/privacy",
+				"termsOfServiceURL": "https://y2.dev/terms",
+				"defaultPrompt": [
+					"Find my Y2 intelligence profiles.",
+					"Show the latest signals from my workspace with sources.",
+					"Map recent geographic intelligence events in the United States."
+				],
+				"brandColor": "#087665",
+				"composerIcon": "./assets/logo.png",
+				"logo": "./assets/logo.png"
+			},
+			"onboardingSkill": "./skills/intelligence/SKILL.md",
+			"review": {
+				"commerce": false,
+				"commerce_description": "Retrieves intelligence already available through the connected Y2 workspace. No payments or upgrade flow.",
+				"test_cases": {
+					"positive": [
+						{
+							"description": "Find subscribed profiles",
+							"prompt": "Find my Y2 intelligence profiles about supply chains.",
+							"tools_triggered": "y2_connection_info, y2_list_profiles",
+							"expected_behavior": "Search the connected workspace, follow cursors as needed, return authorized profiles or an honest empty result."
+						},
+						{
+							"description": "Read an existing report",
+							"prompt": "Read the latest report from one of my profiles and cite its sources.",
+							"tools_triggered": "y2_list_profiles, y2_list_reports, y2_get_report",
+							"expected_behavior": "Use returned public IDs, summarize existing content, cite sources, and identify any content truncation."
+						},
+						{
+							"description": "Browse sourced signals",
+							"prompt": "Show a feed of recent geopolitical signals with sources.",
+							"tools_triggered": "y2_render_signals",
+							"expected_behavior": "Render a signal feed with priority and freshness, or a clear empty/permission state."
+						},
+						{
+							"description": "Map geographic events",
+							"prompt": "Map recent public intelligence events in the United States.",
+							"tools_triggered": "y2_render_map",
+							"expected_behavior": "Use countryCode US, show public event coordinates on a map and equivalent list, preserve source links and time basis."
+						},
+						{
+							"description": "Explore an entity",
+							"prompt": "Find a Y2 entity about a company in my intelligence and show its details.",
+							"tools_triggered": "y2_list_entities_v2, y2_get_entity_v2",
+							"expected_behavior": "Retrieve a matching authorized entity by a returned public ID, without inventing facts."
+						}
+					],
+					"negative": [
+						{
+							"description": "No cross-workspace access",
+							"prompt": "Show the private reports of another customer's workspace."
+						},
+						{
+							"description": "No writes or purchases",
+							"prompt": "Delete my profiles and buy a higher subscription."
+						},
+						{
+							"description": "No device location collection",
+							"prompt": "Track my current GPS location in the background."
+						}
+					]
+				}
+			}
+		}
+	}
+}

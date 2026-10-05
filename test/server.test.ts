@@ -207,6 +207,157 @@ describe("createServer", () => {
 		);
 	});
 
+	it("does not execute ledger writes without the write opt-in", async () => {
+		let requests = 0;
+		globalThis.fetch = async () => {
+			requests++;
+			return jsonResponse({ ok: true });
+		};
+		await withClient({ Y2_API_KEY: "y2_test" }, async (client) => {
+			for (const name of ["y2_open_ledger_subject_v2", "y2_append_ledger_record_v2"]) {
+				const result = await client.callTool({ name, arguments: { body: {} } });
+				assert.equal(result.isError, true, name);
+			}
+		});
+		assert.equal(requests, 0);
+	});
+
+	it("forwards opted-in ledger subject and record bodies with retry keys", async () => {
+		const requests: Request[] = [];
+		globalThis.fetch = async (input, init) => {
+			requests.push(new Request(input, init));
+			return jsonResponse({ ok: true });
+		};
+		const cases = [
+			{
+				name: "y2_open_ledger_subject_v2",
+				path: "/api/v2/ledger/subjects",
+				body: { class: "organization", entityId: `ent_${"a".repeat(24)}` },
+			},
+			{
+				name: "y2_append_ledger_record_v2",
+				path: "/api/v2/ledger/records",
+				body: {
+					kind: "designator",
+					designator: { kind: "ticker", value: "ACME", namespace: "NASDAQ" },
+				},
+			},
+			{
+				name: "y2_append_ledger_record_v2",
+				path: "/api/v2/ledger/records",
+				body: {
+					kind: "observation",
+					observation: {
+						method: "public-registry",
+						sourceGrade: "primary",
+						collector: "review-test",
+						retrievedAt: "2026-10-05T00:00:00Z",
+						excerpt: "Synthetic public filing",
+						sourceUrl: "https://example.test/filing",
+					},
+				},
+			},
+			{
+				name: "y2_append_ledger_record_v2",
+				path: "/api/v2/ledger/records",
+				body: {
+					kind: "claim",
+					claim: {
+						op: "assert",
+						predicate: "designated-by",
+						from: `sbj_${"a".repeat(24)}`,
+						to: `dsg_${"b".repeat(24)}`,
+						evidenceRefs: [`obv_${"c".repeat(24)}`],
+						confidence: 80,
+						verification: "located",
+					},
+				},
+			},
+		];
+		await withClient(
+			{
+				Y2_API_KEY: "y2_test",
+				Y2_MCP_ENABLE_WRITE_TOOLS: "1",
+				Y2_API_BASE_URL: "https://api.example.com",
+			},
+			async (client) => {
+				for (const [index, entry] of cases.entries()) {
+					const idempotencyKey = `ledger-write-test-${index}`;
+					const result = await client.callTool({
+						name: entry.name,
+						arguments: { body: entry.body, idempotencyKey },
+					});
+					assert.equal(result.isError, undefined, JSON.stringify(result.content));
+					assert.equal(requests[index].url, `https://api.example.com${entry.path}`);
+					assert.equal(requests[index].method, "POST");
+					assert.equal(requests[index].headers.get("authorization"), "Bearer y2_test");
+					assert.equal(requests[index].headers.get("Idempotency-Key"), idempotencyKey);
+					assert.deepEqual(await requests[index].json(), entry.body);
+				}
+			},
+		);
+	});
+
+	it("rejects invalid public IDs, bounds, and ledger bodies before making API requests", async () => {
+		let requests = 0;
+		globalThis.fetch = async () => {
+			requests++;
+			return jsonResponse({ ok: true });
+		};
+		const entityId = `ent_${"a".repeat(24)}`;
+		const subjectId = `sbj_${"a".repeat(24)}`;
+		const cases = [
+			{ name: "y2_get_profile", args: { profileId: "internal-profile-id" } },
+			{ name: "y2_list_profiles", args: { limit: 51 } },
+			{
+				name: "y2_list_company_financial_observations_v2",
+				args: { entityId, factType: "forecast" },
+			},
+			{
+				name: "y2_list_company_financial_observations_v2",
+				args: { entityId, metricKey: "INVALID METRIC" },
+			},
+			{ name: "y2_get_entity_fusion_v2", args: { entityId, adjacencyDays: 91 } },
+			{ name: "y2_get_ledger_subject_v2", args: { subjectId, recordedAt: "yesterday" } },
+			{ name: "y2_get_ledger_subject_stix_v2", args: { subjectId, history: "false" } },
+			{ name: "y2_verify_ledger_v2", args: { afterSeq: -1 } },
+			{ name: "y2_list_ledger_records_v2", args: { limit: 201 } },
+			{ name: "y2_open_ledger_subject_v2", args: { body: { class: "country" } } },
+			{
+				name: "y2_open_ledger_subject_v2",
+				args: { body: { class: "person", workspaceId: "other-workspace" } },
+			},
+			{
+				name: "y2_append_ledger_record_v2",
+				args: {
+					body: {
+						kind: "observation",
+						observation: {
+							method: "authenticated-access",
+							sourceGrade: "primary",
+							collector: "test",
+						},
+					},
+				},
+			},
+			{
+				name: "y2_append_ledger_record_v2",
+				args: {
+					body: {
+						kind: "claim",
+						claim: { predicate: "same-as", from: subjectId, to: subjectId, evidenceRefs: [] },
+					},
+				},
+			},
+		];
+		await withClient({ Y2_API_KEY: "y2_test", Y2_MCP_ENABLE_WRITE_TOOLS: "1" }, async (client) => {
+			for (const entry of cases) {
+				const result = await client.callTool({ name: entry.name, arguments: entry.args });
+				assert.equal(result.isError, true, entry.name);
+			}
+		});
+		assert.equal(requests, 0);
+	});
 	it("preserves Markdown, NDJSON, and streaming tool-call responses", async () => {
 		const requests: Request[] = [];
 		const cases = [

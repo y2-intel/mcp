@@ -1,4 +1,9 @@
 dist/
+dist-ui/
+dist-plugins/
+.wrangler/
+.dev.vars
+worker-configuration.d.ts
 node_modules/
 .env
 .DS_Store
