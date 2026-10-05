@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the hosted read-only OAuth service, workspace consent, revocation, and replay protection.
+- Added native MCP Apps profile cards, signal feeds, and regional maps with cited text fallbacks.
+- Added OpenAI and Claude plugin bundles, marketplace manifests, and package validation.
+
 - Updated npm dependencies within the supported version ranges.
 - Synchronized all 65 published operations with typed MCP tools, including
   OpenAI-compatible chat completions behind the Agent Y2 opt-in.

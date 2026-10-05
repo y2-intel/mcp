@@ -1,0 +1,5 @@
+{
+	"name": "y2-intel",
+	"interface": { "displayName": "Y2 Intel" },
+	"plugins": [{ "name": "y2-intel", "source": { "source": "local", "path": "./plugins/openai" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Productivity" }]
+}

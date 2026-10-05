@@ -1,0 +1,5 @@
+{
+	"name": "y2-intel",
+	"owner": { "name": "Y2 Intel" },
+	"plugins": [{ "name": "y2-intel", "source": "./plugins/claude", "description": "Connect your Y2 intelligence profiles, maps, and signals." }]
+}

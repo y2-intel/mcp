@@ -1,0 +1,19 @@
+{
+	"name": "y2-intel",
+	"version": "0.3.0",
+	"description": "Find and explore Y2 intelligence profiles, reports, GIS events, entities, and sourced signals.",
+	"author": {
+		"name": "Y2 Intel",
+		"url": "https://y2.dev",
+		"email": "support@y2.dev"
+	},
+	"homepage": "https://y2.dev/docs/api/mcp",
+	"repository": "https://github.com/y2-intel/mcp",
+	"license": "Apache-2.0",
+	"keywords": [
+		"intelligence",
+		"research",
+		"gis",
+		"signals"
+	]
+}

@@ -13,8 +13,13 @@ const headerAliases: Record<string, string> = { "Idempotency-Key": "idempotencyK
 const discoveryTools = new Set(["y2_call_api", "y2_list_api_operations", "y2_get_openapi_operation"]);
 
 function sample(schema: OpenApiSchema): unknown {
+	if ("const" in schema) return (schema as OpenApiSchema & { const: unknown }).const;
 	if (schema.enum?.length) return schema.enum[0];
 	if (schema.default !== undefined) return schema.default;
+	const variants = schema.oneOf ?? schema.anyOf;
+	if (variants?.length)
+		return sample(variants.find((variant) => variant.type !== "null") ?? variants[0]);
+	if (schema.format === "date-time") return "2026-10-05T00:00:00.000Z";
 	const type = Array.isArray(schema.type) ? schema.type.find((type) => type !== "null") : schema.type;
 	switch (type) {
 		case "object": return Object.fromEntries(Object.entries(schema.properties ?? {}).map(([name, value]) => [name, sample(value)]));
@@ -22,7 +27,18 @@ function sample(schema: OpenApiSchema): unknown {
 		case "boolean": return true;
 		case "number":
 		case "integer": return Math.max(schema.minimum ?? 1, (schema.exclusiveMinimum ?? 0) + 1);
-		default: return "contract-check".padEnd(schema.minLength ?? 0, "x").slice(0, schema.maxLength);
+		default: {
+			const text = "contract-check".padEnd(schema.minLength ?? 0, "x").slice(0, schema.maxLength);
+			if (!schema.pattern) return text;
+			const publicId = schema.pattern.match(/^\^([a-z]+)_\[a-f0-9\]\{(24|32)\}\$$/);
+			const candidates = [
+				text, "contract_check", "US", "12:00", "-1,-1,1,1", "y2w1_contract", "a".repeat(64),
+				...(publicId ? [`${publicId[1]}_${"a".repeat(Number(publicId[2]))}`] : []),
+			];
+			const matching = candidates.find((value) => new RegExp(schema.pattern!).test(value));
+			assert.ok(matching, `Add a valid contract sample for pattern ${schema.pattern}`);
+			return matching;
+		}
 	}
 }
 

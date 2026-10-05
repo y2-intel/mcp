@@ -1,10 +1,32 @@
-# y2-mcp
+# Y2 Intel MCP
 
 MCP server for connecting Claude, Codex, and other MCP-compatible agents to Y2.
 
-The package is intentionally thin: it runs locally over stdio, reads credentials
-from environment variables, and calls the public Y2 API. It does not import
-Convex app internals.
+The hosted service uses OAuth and exposes twelve read-only tools with native profile,
+signal, and map views. The local npm package runs over stdio using an API key.
+Both call the Y2 API without importing Convex application internals.
+
+## Hosted connection
+
+Add this URL as a custom remote MCP connection in a compatible assistant:
+
+```text
+https://y2-intel-mcp.managed-services.workers.dev/mcp
+```
+
+Sign in to Y2, select a workspace, and approve the read permissions you need. Manage
+access at [Y2 Settings → Connections](https://y2.dev/app/settings/connections).
+Membership and entitlements apply to every request; connections expire after 30 days.
+Native views require MCP Apps support. Other clients receive structured data and text.
+
+The hosted service exposes connection information, profile list/detail, report list/detail,
+entity list/detail, signal and regional-event reads, and three native view tools. It cannot
+generate reports, perform writes, execute Agent Y2, or purchase anything.
+
+The [OpenAI plugin](plugins/openai) and [Claude plugin](plugins/claude) contain the same
+hosted connection and workflow guidance. Their presence in this repository does not imply
+provider approval or a public directory listing. See [release operations](docs/native-release.md)
+for packaging, deployment, and publication gates.
 
 ## Install
 

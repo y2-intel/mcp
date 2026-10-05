@@ -33,13 +33,13 @@ const callInput = {
 		.optional()
 		.describe("HTTP method to use with path."),
 	parameters: z
-		.record(z.unknown())
+		.record(z.string(), z.unknown())
 		.optional()
 		.describe(
 			"Parameter values keyed by the operation's parameter names: path params are interpolated, query params serialized (arrays become comma-separated), header params attached as headers.",
 		),
 	body: z
-		.record(z.unknown())
+		.record(z.string(), z.unknown())
 		.optional()
 		.describe("JSON request body for operations that accept one, per the Y2 OpenAPI schema."),
 };

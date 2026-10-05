@@ -1,0 +1,6 @@
+{
+	"$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+	"mcpServers": {
+		"y2-intel": { "type": "streamable-http", "url": "https://y2-intel-mcp.managed-services.workers.dev/mcp" }
+	}
+}

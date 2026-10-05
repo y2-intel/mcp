@@ -26,7 +26,7 @@ export function registerAgentTools(server: McpServer, client: Y2Client, config: 
 			description:
 				"Call Y2's OpenAI-compatible streaming chat endpoint. Requires agent:y2 and Y2_MCP_ENABLE_AGENT=1. Accepts OpenAICompatibleChatCompletionRequest (messages and stream: true required), including client tool definitions. Returns the event stream with tool calls preserved.",
 			inputSchema: {
-				body: z.record(z.unknown()).describe("OpenAICompatibleChatCompletionRequest JSON body from y2_get_openapi_operation."),
+				body: z.record(z.string(), z.unknown()).describe("OpenAICompatibleChatCompletionRequest JSON body from y2_get_openapi_operation."),
 			},
 			annotations: agentActionToolAnnotations,
 		},
