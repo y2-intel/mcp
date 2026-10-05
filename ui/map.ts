@@ -165,6 +165,21 @@ export class IntelligenceMap {
 								},
 							},
 							{
+								id: "cluster-count",
+								type: "symbol",
+								source: "events",
+								filter: ["has", "point_count"],
+								layout: {
+									"text-field": ["to-string", ["get", "point_count"]],
+									// No glyphs URL: MapLibre rasterizes these system fonts locally.
+									"text-font": ["system-ui", "sans-serif"],
+									"text-size": 13,
+									"text-allow-overlap": true,
+									"text-ignore-placement": true,
+								},
+								paint: { "text-color": "#292929" },
+							},
+							{
 								id: "events",
 								type: "circle",
 								source: "events",
