@@ -68,6 +68,8 @@ function setLoading(value: boolean) {
 	const toolsAvailable =
 		connected && Boolean(app.getHostCapabilities()?.serverTools);
 	more.disabled = value || !toolsAvailable;
+	more.setAttribute("aria-busy", String(value));
+	element("apply-filters").setAttribute("aria-busy", String(value));
 	for (const control of mapFilters.querySelectorAll<
 		HTMLButtonElement | HTMLSelectElement
 	>("button,select"))
@@ -138,6 +140,9 @@ function render() {
 	element("query").textContent = querySummary(view);
 	element("controls").hidden = false;
 	element("options").hidden = false;
+	const mapContext = element("map-context");
+	mapContext.hidden = result.kind !== "map";
+	mapContext.textContent = mapContextLabel(view, app.getHostContext()?.locale);
 	mapFilters.hidden =
 		result.kind !== "map" || !view.query || !view.scopes.includes("osint:read");
 	category.value =
@@ -157,6 +162,7 @@ function render() {
 	status.textContent = filtered.length
 		? count
 		: "No matching intelligence is available in the loaded results.";
+	status.dataset.empty = String(filtered.length === 0);
 	if (capped)
 		status.textContent += ` · Showing up to ${MAX_VISIBLE_ITEMS} loaded results. Ask your assistant to narrow the query.`;
 	else if (result.hasMore)
@@ -184,6 +190,24 @@ function render() {
 	if (result.kind === "map") void map.update(filtered);
 	else map.clear();
 }
+function mapContextLabel(current: ViewState, locale = "en"): string {
+	const code = current.query?.countryCode;
+	let country = current.query ? "All countries" : "Public events";
+	if (typeof code === "string" && /^[a-z]{2}$/i.test(code)) {
+		country = code.toUpperCase();
+		try {
+			country =
+				new Intl.DisplayNames([locale], { type: "region" }).of(country) ??
+				country;
+		} catch {
+			// Preserve the source country code if the host locale is unsupported.
+		}
+	}
+	const categoryLabel = current.query?.category;
+	return typeof categoryLabel === "string" && categoryLabel
+		? `${country} · ${categoryLabel}`
+		: country;
+}
 function syncHostContext() {
 	const context = app.getHostContext();
 	if (context?.theme) applyDocumentTheme(context.theme);
@@ -193,6 +217,7 @@ function syncHostContext() {
 	applyDisplayMode();
 	map.resize();
 	if (view) {
+		element("map-context").textContent = mapContextLabel(view, context?.locale);
 		element("freshness").textContent =
 			`Retrieved ${timeLabel(view.result.retrievedAt, context)}`;
 	}
@@ -262,6 +287,9 @@ function clearView() {
 	items.replaceChildren();
 	map.clear();
 	element("controls").hidden = true;
+	element("map-context").hidden = true;
+	element("map-context").textContent = "";
+	delete status.dataset.empty;
 	element<HTMLDetailsElement>("options").open = false;
 	element("options").hidden = true;
 	mapFilters.hidden = true;

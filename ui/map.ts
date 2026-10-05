@@ -133,15 +133,15 @@ export class IntelligenceMap {
 							{
 								id: "ocean",
 								type: "background",
-								paint: { "background-color": "#0d1b28" },
+								paint: { "background-color": "#080808" },
 							},
 							{
 								id: "land",
 								type: "fill",
 								source: "countries",
 								paint: {
-									"fill-color": "#223849",
-									"fill-outline-color": "#466172",
+									"fill-color": "#292929",
+									"fill-outline-color": "#9e9e9e",
 								},
 							},
 							{

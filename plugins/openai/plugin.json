@@ -22,7 +22,7 @@
 			"interface": {
 				"displayName": "Y2 Intel",
 				"shortDescription": "Profiles, maps, and signals",
-				"longDescription": "Connect a Y2 workspace to find subscribed intelligence profiles, read existing reports with citations, explore entities and signals, and view geographic events on an interactive map. Choose the read permissions you grant and disconnect at any time in Y2 Settings \u2192 Connections. Access follows your workspace membership and existing entitlements. Source coverage and freshness vary; results preserve their event, publication, or extraction time basis. This integration retrieves existing intelligence and does not generate reports, modify records, make purchases, or collect your device location.",
+				"longDescription": "Connect a Y2 workspace to find subscribed intelligence profiles, read existing reports with citations, explore entities and signals, and view geographic events on an interactive map. Choose the read permissions you grant and disconnect at any time in Y2 Settings → Connections. Access follows your workspace membership and existing entitlements. Source coverage and freshness vary; results preserve their event, publication, or extraction time basis. This integration retrieves existing intelligence and does not generate reports, modify records, make purchases, or collect your device location.",
 				"developerName": "Y2 Intel",
 				"category": "Productivity",
 				"capabilities": [
@@ -37,7 +37,7 @@
 					"Show the latest signals from my workspace with sources.",
 					"Map recent geographic intelligence events in the United States."
 				],
-				"brandColor": "#087665",
+				"brandColor": "#292929",
 				"composerIcon": "./assets/logo.png",
 				"logo": "./assets/logo.png"
 			},

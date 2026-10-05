@@ -26,12 +26,14 @@ function button(
 	if (tool) button.dataset.toolAction = "true";
 	button.onclick = () => {
 		button.disabled = true;
+		button.setAttribute("aria-busy", "true");
 		void action()
 			.catch(() =>
 				error("This action is unavailable. Try again from your assistant."),
 			)
 			.finally(() => {
 				button.disabled = false;
+				button.setAttribute("aria-busy", "false");
 			});
 	};
 	return button;
