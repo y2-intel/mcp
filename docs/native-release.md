@@ -48,8 +48,11 @@ codes describe queried areas; coordinates returned by the API describe public ev
    production environment variable and Worker secret. Use protected files/stdin, never command
    arguments or checked-in configuration. Replay revocation fails closed without it; other
    lifecycle endpoints require the one-use ticket/verifier or connection-specific credential.
-4. Deploy the platform backend and build the web app with the production Convex URL. Deploy
-   that web artifact to the existing `y2-platform` Netlify site. Preserve generated sitemap output.
+4. Deploy the platform backend to production (`fleet-mink-954`). Build the web app with
+   `VITE_CONVEX_URL=https://data.y2.dev bun run build` from the platform repository. Keep this
+   canonical URL: substituting the deployment's direct `.convex.cloud` URL changes the Convex
+   Auth browser session namespace. Deploy that web artifact to the existing `y2-platform`
+   Netlify site. Preserve generated sitemap output.
 5. Run `npm run deploy:native`. Record the Worker version, KV namespace ID, both repository
    SHAs, Convex target, and Netlify deploy ID in the platform release evidence.
 6. Check `/health`, both OAuth discovery documents, unauthenticated `401` with resource
