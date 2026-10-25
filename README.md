@@ -11,7 +11,7 @@ Both call the Y2 API without importing Convex application internals.
 Add this URL as a custom remote MCP connection in a compatible assistant:
 
 ```text
-https://y2-intel-mcp.managed-services.workers.dev/mcp
+https://mcp.y2.dev/mcp
 ```
 
 Sign in to Y2, select a workspace, and approve the read permissions you need. Manage
@@ -58,7 +58,7 @@ export Y2_MCP_ENABLE_AGENT=1
 
 Write tools are also disabled by default. Enable them only for clients and keys
 that should mutate Y2 profiles, projects, automations, webhooks, or subscription
-delivery:
+delivery, or take DNS lookups that use the workspace's monthly allowance:
 
 ```sh
 export Y2_MCP_ENABLE_WRITE_TOOLS=1
@@ -77,8 +77,8 @@ export Y2_MCP_ENABLE_WRITE_TOOLS=1
   audio), projects, automations, webhooks, news, recaps, feeds, OSINT (events,
   map, CII, country briefs, aircraft, vessels, GPS jamming, cyber threats,
   prediction markets), intel v2 (incidents, entities, graphs, markets, FinInt,
-  signals, CVEs, threat actors, change watermarks, knowledge retrieval), and the
-  public x402 receipt lookup.
+  signals, CVEs, threat actors, DNS snapshots, public disclosures, change
+  watermarks, knowledge retrieval), and the public x402 receipt lookup.
 - Optional `y2_ask_agent` and `y2_create_chat_completion` for Agent Y2 when enabled.
   The chat-completion tool accepts the OpenAI-compatible request body and returns
   the event stream, preserving client tool calls.

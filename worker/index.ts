@@ -17,7 +17,7 @@ export default {
 			return new Response("Unknown origin", { status: 421, headers: noStore });
 		if (url.pathname === "/health" && request.method === "GET")
 			return Response.json(
-				{ service: "Y2 Intel", version: "0.3.0", status: "ok" },
+				{ service: "Y2 Intel", version: "0.4.0", status: "ok" },
 				{ headers: noStore },
 			);
 		if (

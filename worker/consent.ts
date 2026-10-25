@@ -50,8 +50,8 @@ const pageHeaders = {
 	"Content-Security-Policy":
 		"default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
 };
-const finishHtml =
-	'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect Y2 Intel</title><main><h1>Connect Y2 Intel</h1><p id="status" role="status">Completing your connection…</p><a href="https://y2.dev/app/settings/connections">Manage connections</a></main><script src="/oauth/finish.js" defer></script></html>';
+const finishHtml = (y2Origin: string) =>
+	`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect Y2 Intel</title><main><h1>Connect Y2 Intel</h1><p id="status" role="status">Completing your connection…</p><a href="${new URL(y2Origin).origin}/app/settings/connections">Manage connections</a></main><script src="/oauth/finish.js" defer></script></html>`;
 const finishJs = `"use strict"; (async () => { const p = new URLSearchParams(location.hash.slice(1)); history.replaceState(null, "", location.pathname); const status = document.getElementById("status"); try { const response = await fetch("/oauth/complete", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: p.get("request"), decision: p.get("decision"), ...(p.get("code") ? {code:p.get("code")} : {}) }) }); if (!response.ok) throw new Error(); const result = await response.json(); location.replace(result.redirectTo); } catch { status.textContent = "This connection could not be completed. Return to your assistant and start a new connection."; } })();`;
 
 export async function consentRoutes(
@@ -153,7 +153,7 @@ export async function consentRoutes(
 		);
 	}
 	if (url.pathname === "/oauth/finish" && request.method === "GET")
-		return new Response(finishHtml, { headers: pageHeaders });
+		return new Response(finishHtml(env.Y2_ORIGIN), { headers: pageHeaders });
 	if (url.pathname === "/oauth/finish.js" && request.method === "GET")
 		return new Response(finishJs, {
 			headers: { ...noStore, "Content-Type": "text/javascript; charset=utf-8" },

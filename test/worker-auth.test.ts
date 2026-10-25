@@ -19,6 +19,14 @@ after(async () => {
 	await worker?.dispose();
 });
 
+test("consent completion links back to the configured Y2 origin", async () => {
+	const page = await worker.fetch("/oauth/finish");
+	assert.equal(page.status, 200);
+	const html = await page.text();
+	assert.match(html, /href="https:\/\/y2\.test\/app\/settings\/connections"/);
+	assert.doesNotMatch(html, /y2\.dev/);
+});
+
 test("workerd exposes OAuth discovery and rejects unauthenticated MCP", async () => {
 	const denied = await worker.fetch("/mcp");
 	assert.equal(denied.status, 401);
