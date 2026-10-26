@@ -4,8 +4,8 @@
 
 - Requires Node.js 24.22.1 or later, or 26.12.1 or later. Earlier releases have known
   security vulnerabilities. CI, release, and live smoke workflows run on Node.js 24.
-- Moved the hosted service to `https://mcp.y2.dev/mcp` and disabled the `workers.dev`
-  hostname. Hosted connections made with 0.3.0 must be removed and added again.
+- Moved the hosted service to `https://mcp.y2.dev/mcp` and retired the `workers.dev`
+  address. Hosted connections made with 0.3.0 must be removed and added again.
 - Synchronized all 78 published operations with typed MCP tools. Added
   `y2_list_disclosures_v2`, `y2_list_dns_snapshots_v2`, and the write-gated
   `y2_create_dns_lookup_v2`. A new DNS snapshot uses one monthly workspace lookup.

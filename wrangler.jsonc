@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "y2-intel-mcp",
-	"account_id": "27d1f608c06ff50311a707dd28f2daf8",
+	"account_id": "7fd7cf7ff43f4e4b5adc63253ee0d858",
 	"main": "worker/index.ts",
 	"compatibility_date": "2026-10-05",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -14,7 +14,7 @@
 		"API_ORIGIN": "https://api.y2.dev"
 	},
 	"kv_namespaces": [
-		{ "binding": "OAUTH_KV", "id": "d38a579d892d4144a17a9819b35ebf61" }
+		{ "binding": "OAUTH_KV", "id": "570a95efc65340c1839d99e3d5475e74" }
 	],
 	"ratelimits": [
 		{

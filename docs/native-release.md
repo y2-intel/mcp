@@ -11,13 +11,15 @@ Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.4
 - Account/consent UI: `https://y2.dev/app/settings/connections`.
 - Backend: existing Y2 API at `https://api.y2.dev`.
 
-Releases through 0.3.0 used `https://y2-intel-mcp.managed-services.workers.dev`. Version
-0.4.0 disables that hostname. The new issuer and resource require fresh connections.
-Do not redirect bearer tokens or keep two interchangeable authorization audiences.
-
-A Custom Domain requires the Worker and the `y2.dev` zone in the same Cloudflare account.
-Set `account_id`, the `OAUTH_KV` namespace ID, and the Worker secret for that account before
-deploying. The platform runbook `docs/operations/mcp-custom-domain.md` lists the cutover.
+Releases through 0.3.0 ran in a separate Cloudflare account at
+`https://y2-intel-mcp.managed-services.workers.dev`. Version 0.4.0 runs in the account that
+owns the `y2.dev` zone (Jedi Labs), because a Custom Domain requires the Worker and the zone
+in the same account. That account has its own `OAUTH_KV` namespace and `MCP_GATEWAY_SECRET`.
+Production Convex uses the new origin and secret, so the old Worker can no longer complete
+consent or call Y2. Delete it from the old account when someone with access can. The new
+issuer and resource require fresh connections. Do not redirect bearer tokens or keep two
+interchangeable authorization audiences. The platform runbook
+`docs/operations/mcp-custom-domain.md` lists the cutover.
 
 ## Security and data handling
 
