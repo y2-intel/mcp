@@ -30,6 +30,9 @@ for packaging, deployment, and publication gates.
 
 ## Install
 
+Requires Node.js 24.22.1 or later (or 26.12.1 or later). Earlier releases have known
+security vulnerabilities.
+
 ```sh
 npx -y @y2-intel/mcp
 ```
