@@ -14,6 +14,9 @@
   SDKs, Wrangler 4.152, Vite 8.3.5, Zod 4.6.7, and TypeScript 7. Cleared all npm audit
   advisories except `undici` 7.29.1, which Wrangler's pinned Miniflare uses in local
   development only.
+- The npm package installs only the MCP SDK, `yaml`, and `zod`. Hosted Worker and map
+  view libraries moved to development dependencies, reducing a clean install from 127
+  packages to 97.
 
 ## 0.3.0
 
