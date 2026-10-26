@@ -38,6 +38,10 @@ const cursor = z.string().min(1).optional().describe("Opaque cursor returned by 
 const jsonFormat = z.enum(["json", "ndjson"]).optional().describe("Response representation.");
 const geoFormat = z.enum(["json", "ndjson", "geojson"]).optional().describe("Response representation.");
 const fields = z.string().min(1).optional().describe("Comma-separated fields to return for this resource type.");
+const temporality = z
+	.enum(["current", "forecast"])
+	.default("current")
+	.describe("current: events at or before the request time; forecast: events after it.");
 
 const stringFilter = (description: string) => z.string().min(1).max(512).optional().describe(description);
 const boolFilter = (description: string) => z.boolean().optional().describe(description);
@@ -283,11 +287,12 @@ const readTools: ApiToolDefinition[] = [
 		inputSchema: {
 			cursor,
 			format: geoFormat,
+			temporality,
 			category: enumFilter(incidentCategoryValues, "Optional OSINT event category."),
 			severity: enumFilter(severityValues, "Optional severity level."),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["category", "severity", "limit", "cursor", "format"],
+		queryParams: ["temporality", "category", "severity", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -300,10 +305,11 @@ const readTools: ApiToolDefinition[] = [
 		inputSchema: {
 			cursor,
 			format: geoFormat,
+			temporality,
 			region: enumFilter(regionValues, "Optional geographic region."),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 500, defaultValue: 200 }),
 		},
-		queryParams: ["region", "limit", "cursor", "format"],
+		queryParams: ["temporality", "region", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -516,12 +522,13 @@ const readTools: ApiToolDefinition[] = [
 		inputSchema: {
 			cursor,
 			format: geoFormat,
+			temporality,
 			category: enumFilter(incidentCategoryValues, "Optional event category."),
 			severity: enumFilter(severityValues, "Optional severity level."),
 			countryCode: countryCode.optional(),
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
-		queryParams: ["category", "severity", "countryCode", "limit", "cursor", "format"],
+		queryParams: ["temporality", "category", "severity", "countryCode", "limit", "cursor", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{
@@ -534,6 +541,7 @@ const readTools: ApiToolDefinition[] = [
 		inputSchema: {
 			cursor,
 			format: geoFormat,
+			temporality,
 			q: z.string().min(1).max(200).optional().describe("Optional full-text search on title and description."),
 			region: enumFilter(regionValues, "Optional geographic region."),
 			countryCode: countryCode.optional(),
@@ -553,6 +561,7 @@ const readTools: ApiToolDefinition[] = [
 			limit: intFilter("Maximum events to return.", { minimum: 1, maximum: 200, defaultValue: 50 }),
 		},
 		queryParams: [
+			"temporality",
 			"q",
 			"region",
 			"countryCode",

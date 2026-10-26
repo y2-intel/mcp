@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
+
+- Requires Node.js 24.22.1 or later, or 26.12.1 or later. Earlier releases have known
+  security vulnerabilities. CI, release, and live smoke workflows run on Node.js 24.
+- Moved the hosted service to `https://mcp.y2.dev/mcp` and disabled the `workers.dev`
+  hostname. Hosted connections made with 0.3.0 must be removed and added again.
+- Synchronized all 78 published operations with typed MCP tools. Added
+  `y2_list_disclosures_v2`, `y2_list_dns_snapshots_v2`, and the write-gated
+  `y2_create_dns_lookup_v2`. A new DNS snapshot uses one monthly workspace lookup.
+- Added the `temporality` filter (`current` or `forecast`) to OSINT, map, Y2, and
+  regional event tools.
+- The hosted consent completion page links to the configured Y2 origin.
+- Updated dependencies, including `@cloudflare/workers-oauth-provider` 1.2.4, the MCP
+  SDKs, Wrangler 4.152, Vite 8.3.5, Zod 4.6.7, and TypeScript 7. Cleared all npm audit
+  advisories except `undici` 7.29.1, which Wrangler's pinned Miniflare uses in local
+  development only.
+- The npm package installs only the MCP SDK, `yaml`, and `zod`. Hosted Worker and map
+  view libraries moved to development dependencies, reducing a clean install from 127
+  packages to 97.
+
+## 0.3.0
 
 - Added the hosted read-only OAuth service, workspace consent, revocation, and replay protection.
 - Added native MCP Apps profile cards, signal feeds, and regional maps with cited text fallbacks.

@@ -19,7 +19,7 @@ for (const key of ["websiteURL", "supportURL", "privacyPolicyURL", "termsOfServi
 const review = manifest.extensions["com.openai"].review;
 assert.ok(review.test_cases.positive.length >= 5 && review.test_cases.negative.length >= 3);
 assert.equal(review.commerce, false);
-const endpoint = "https://y2-intel-mcp.managed-services.workers.dev/mcp";
+const endpoint = "https://mcp.y2.dev/mcp";
 for (const [kind, file] of [["openai", "mcp.json"], ["claude", ".mcp.json"]]) {
 	const config = await json(`plugins/${kind}/${file}`);
 	assert.equal(Object.keys(config.mcpServers).length, 1);

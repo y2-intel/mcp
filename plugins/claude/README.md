@@ -5,6 +5,12 @@ browse sourced signals and entities, and explore public geographic events on an 
 Install this bundle in a host that supports portable plugins and remote MCP, then follow the
 OAuth sign-in and workspace consent flow. No API key or local server is required.
 
+In Claude Code, install it from this repository's marketplace:
+
+```text
+/plugin install y2-intel --marketplace y2-intel/mcp
+```
+
 Access requires an existing Y2 account and workspace with the corresponding intelligence and API
 entitlements. Each connection has explicit read permissions and expires after 30 days. Manage or
 revoke it in [Y2 Connections](https://y2.dev/app/settings/connections). The integration does not

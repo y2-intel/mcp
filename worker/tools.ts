@@ -183,7 +183,7 @@ export async function nativeMcp(
 	const handler = createMcpHandler(
 		() => {
 			const server = new McpServer(
-				{ name: "Y2 Intel", version: "0.3.0" },
+				{ name: "Y2 Intel", version: "0.4.0" },
 				{
 					jsonSchemaValidator: new CfWorkerJsonSchemaValidator(),
 					instructions:

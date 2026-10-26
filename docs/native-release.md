@@ -1,19 +1,23 @@
 # Native integration release operations
 
-Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.3.0`.
+Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.4.0`.
 
 ## Service and ownership
 
-- Worker and OAuth issuer: `https://y2-intel-mcp.managed-services.workers.dev`.
+- Worker and OAuth issuer: `https://mcp.y2.dev`, a Workers Custom Domain.
 - Streamable HTTP endpoint and OAuth resource: `/mcp` on that origin.
 - UI: same dedicated integration origin, with self-hosted scripts and Natural Earth geometry.
+  `vite.config.ts` embeds the origin at build time; override it only with `MCP_UI_ORIGIN`.
 - Account/consent UI: `https://y2.dev/app/settings/connections`.
 - Backend: existing Y2 API at `https://api.y2.dev`.
 
-The Worker runs in Y2's existing Cloudflare Shared Services account. The selected account
-cannot manage the `y2.dev` DNS zone, so this release uses its stable `workers.dev` hostname.
-A future hostname migration changes the OAuth issuer/resource and requires fresh connections.
-Do not silently redirect bearer tokens or keep two interchangeable authorization audiences.
+Releases through 0.3.0 used `https://y2-intel-mcp.managed-services.workers.dev`. Version
+0.4.0 disables that hostname. The new issuer and resource require fresh connections.
+Do not redirect bearer tokens or keep two interchangeable authorization audiences.
+
+A Custom Domain requires the Worker and the `y2.dev` zone in the same Cloudflare account.
+Set `account_id`, the `OAUTH_KV` namespace ID, and the Worker secret for that account before
+deploying. The platform runbook `docs/operations/mcp-custom-domain.md` lists the cutover.
 
 ## Security and data handling
 

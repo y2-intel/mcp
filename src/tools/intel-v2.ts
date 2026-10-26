@@ -16,6 +16,11 @@ const cursor = z
 	.optional()
 	.describe("Opaque next cursor; preserve the original path and filters.");
 const pageLimit = z.number().int().min(1).max(50).default(25);
+const dnsDomain = z
+	.string()
+	.min(1)
+	.max(300)
+	.describe("Domain name; Y2 reduces a URL or www. host to its domain.");
 const recordedAt = z.iso
 	.datetime({ offset: true })
 	.optional()
@@ -244,6 +249,89 @@ export const intelV2ReadTools: ApiToolDefinition[] = [
 		queryParams: ["afterSeq", "limit"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
+	{
+		name: "y2_list_disclosures_v2",
+		title: "List Public Disclosures",
+		description:
+			"Screen SEC 8-K, insider transaction, ownership stake, and federal award disclosures. Requires intel:disclosures.",
+		method: "GET",
+		path: "/api/v2/disclosures",
+		scopes: ["intel:disclosures"],
+		inputSchema: {
+			kind: z
+				.enum([
+					"material_event",
+					"insider_transaction",
+					"ownership_stake",
+					"federal_award",
+				])
+				.optional(),
+			category: z
+				.string()
+				.min(1)
+				.max(64)
+				.optional()
+				.describe("Screener facet, such as cybersecurity or buy; must belong to kind."),
+			severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+			entityId: entityId
+				.optional()
+				.describe("Return disclosures naming this entity as subject or counterparty."),
+			q: z
+				.string()
+				.min(1)
+				.max(200)
+				.optional()
+				.describe("Title search: company, ticker, insider, agency, or recipient."),
+			minAmountUsd: z.number().min(0).optional(),
+			sinceMs: z
+				.number()
+				.int()
+				.min(0)
+				.optional()
+				.describe("Earliest publishedAt in Unix milliseconds."),
+			sort: z
+				.enum(["recent", "amount"])
+				.optional()
+				.describe("amount sorts largest first and requires kind."),
+			limit: z.number().int().min(1).max(100).default(25),
+			cursor,
+			"fields[disclosures]": z
+				.string()
+				.min(1)
+				.optional()
+				.describe("Comma-separated disclosure fields to return."),
+		},
+		queryParams: [
+			"kind",
+			"category",
+			"severity",
+			"entityId",
+			"q",
+			"minAmountUsd",
+			"sinceMs",
+			"sort",
+			"limit",
+			"cursor",
+			"fields[disclosures]",
+		],
+		annotations: readOnlyExternalToolAnnotations,
+	},
+	{
+		name: "y2_list_dns_snapshots_v2",
+		title: "List DNS Snapshots",
+		description:
+			"List a domain's stored DNS snapshots, newest first, without a new lookup. Requires intel:cyber.",
+		method: "GET",
+		path: "/api/v2/cyber/dns/snapshots",
+		scopes: ["intel:cyber"],
+		inputSchema: {
+			domain: dnsDomain,
+			limit: z.number().int().min(1).max(25).default(10),
+			cursor,
+		},
+		queryParams: ["domain", "limit", "cursor"],
+		annotations: readOnlyExternalToolAnnotations,
+	},
 ];
 
 export const intelV2WriteTools: ApiToolDefinition[] = [
@@ -279,6 +367,28 @@ export const intelV2WriteTools: ApiToolDefinition[] = [
 		inputSchema: { idempotencyKey, body: ledgerRecord },
 		bodyParam: "body",
 		headerParams: ["idempotencyKey:Idempotency-Key"],
+		annotations: additiveExternalToolAnnotations,
+	},
+	{
+		name: "y2_create_dns_lookup_v2",
+		title: "Look Up Domain DNS",
+		description:
+			"Return a domain's DNS footprint, reusing a snapshot younger than 14 days. A new snapshot uses one monthly DNS lookup. Requires intel:cyber and Y2_MCP_ENABLE_WRITE_TOOLS=1.",
+		method: "POST",
+		path: "/api/v2/cyber/dns/lookups",
+		scopes: ["intel:cyber"],
+		inputSchema: {
+			body: z
+				.object({
+					domain: dnsDomain.optional(),
+					entityId: entityId
+						.optional()
+						.describe("Look up this entity's recorded official website."),
+				})
+				.strict()
+				.describe("Provide domain, entityId, or both."),
+		},
+		bodyParam: "body",
 		annotations: additiveExternalToolAnnotations,
 	},
 ];
