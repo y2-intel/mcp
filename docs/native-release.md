@@ -13,7 +13,7 @@ Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.4
 
 Releases through 0.3.0 ran in a separate Cloudflare account at
 `https://y2-intel-mcp.managed-services.workers.dev`. Version 0.4.0 runs in the account that
-owns the `y2.dev` zone (Jedi Labs), because a Custom Domain requires the Worker and the zone
+owns the `y2.dev` zone (`internal`), because a Custom Domain requires the Worker and the zone
 in the same account. That account has its own `OAUTH_KV` namespace and `MCP_GATEWAY_SECRET`.
 Production Convex uses the new origin and secret, so the old Worker can no longer complete
 consent or call Y2. Delete it from the old account when someone with access can. The new
