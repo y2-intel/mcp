@@ -77,6 +77,7 @@ const sourceTypeValues: [string, ...string[]] = [
 	"firms",
 	"opensky",
 	"wingbits",
+	"adsblol",
 	"usni",
 	"polymarket",
 	"kalshi",
@@ -886,13 +887,16 @@ const readTools: ApiToolDefinition[] = [
 			watermark: stringFilter(
 				"Optional exclusive checkpoint returned by an earlier response for incremental polling.",
 			),
+			since: stringFilter(
+				"Optional start instant as an RFC 3339 timestamp or epoch milliseconds. Cannot be combined with watermark.",
+			),
 			limit: intFilter("Maximum change events to return.", {
 				minimum: 1,
 				maximum: 500,
 				defaultValue: 100,
 			}),
 		},
-		queryParams: ["watermark", "limit", "format"],
+		queryParams: ["watermark", "since", "limit", "format"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{

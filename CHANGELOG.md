@@ -11,6 +11,8 @@
   `y2_create_dns_lookup_v2`. A new DNS snapshot uses one monthly workspace lookup.
 - Added the `temporality` filter (`current` or `forecast`) to OSINT, map, Y2, and
   regional event tools.
+- Added the `since` start time to `y2_list_changes_v2` and the `adsblol` source to the
+  regional event `sourceType` filter.
 - The hosted consent completion page links to the configured Y2 origin.
 - Updated dependencies, including `@cloudflare/workers-oauth-provider` 1.2.4, the MCP
   SDKs, Wrangler 4.152, Vite 8.3.5, Zod 4.6.7, and TypeScript 7. Cleared all npm audit
