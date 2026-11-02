@@ -32,7 +32,7 @@ function sample(schema: OpenApiSchema): unknown {
 			if (!schema.pattern) return text;
 			const publicId = schema.pattern.match(/^\^([a-z]+)_\[a-f0-9\]\{(24|32)\}\$$/);
 			const candidates = [
-				text, "contract_check", "US", "12:00", "-1,-1,1,1", "y2w1_contract", "a".repeat(64),
+				text, "contract_check", "US", "12:00", "-1,-1,1,1", "y2w1_contract", "a".repeat(64), "CVE-2024-3094",
 				...(publicId ? [`${publicId[1]}_${"a".repeat(Number(publicId[2]))}`] : []),
 			];
 			const matching = candidates.find((value) => new RegExp(schema.pattern!).test(value));

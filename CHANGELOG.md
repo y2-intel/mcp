@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.1
+
+- Synchronized all 79 published operations with typed MCP tools. Added
+  `y2_get_cve_disclosure_v2` for sourced CVE disclosures, and the `cve_list` and `osv`
+  sources to the regional event `sourceType` filter.
+- Updated Wrangler to 4.156.1 and Miniflare to 5.20261101.0-beta, which use `undici` 7.30.1.
+  This fixes CVE-2026-109829, CVE-2026-109383, CVE-2026-87018, CVE-2026-109869,
+  CVE-2026-109924, CVE-2026-109841, CVE-2026-109932, and CVE-2026-87029 in local development
+  and Worker deployment tools. `npm audit` reports no vulnerabilities.
+- Locked `@hono/node-server`, a dependency of the MCP SDK, to 2.1.6 for CVE-2026-118663. The
+  stdio server does not serve static files, and new installs already resolve a fixed release.
+- The minimum Node.js versions, 24.22.1 and 26.12.1, bundle a fixed `undici` for `fetch`.
+- CI, release, and live smoke workflows use `actions/checkout` and `actions/setup-node` v7,
+  which run on Node.js 24 instead of Node.js 20.
+- Updated `@modelcontextprotocol/ext-apps` to 2.0.4, Workers types, and `@types/node`.
+
 ## 0.4.0
 
 - Requires Node.js 24.22.1 or later, or 26.12.1 or later. Earlier releases have known

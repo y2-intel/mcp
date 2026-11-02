@@ -90,6 +90,8 @@ const sourceTypeValues: [string, ...string[]] = [
 	"eia",
 	"nvd",
 	"cisa_kev",
+	"cve_list",
+	"osv",
 	"intel_expansion",
 	"intel_discovery",
 	"news_terminal",
@@ -852,6 +854,29 @@ const readTools: ApiToolDefinition[] = [
 			limit: intFilter("Maximum CVEs to return.", { minimum: 1, maximum: 500, defaultValue: 50 }),
 		},
 		queryParams: ["q", "limit", "cursor", "fields[entities]"],
+		annotations: readOnlyExternalToolAnnotations,
+	},
+	{
+		name: "y2_get_cve_disclosure_v2",
+		title: "Get CVE Disclosure",
+		description:
+			"Get a sourced CVE disclosure with assessments, affected versions, remediation, and references. Requires intel:cyber.",
+		method: "GET",
+		path: "/api/v2/cyber/cves/{cveId}",
+		scopes: ["intel:cyber"],
+		inputSchema: {
+			cveId: z
+				.string()
+				.regex(/^CVE-[0-9]{4}-[0-9]{4,31}$/)
+				.describe("Canonical CVE identifier, such as CVE-2024-3094. Not an ent_ entity ID."),
+			revision: z
+				.string()
+				.regex(/^[a-f0-9]{64}$/)
+				.optional()
+				.describe("SHA-256 revision from an earlier response. Omit for the current record."),
+		},
+		pathParams: ["cveId"],
+		queryParams: ["revision"],
 		annotations: readOnlyExternalToolAnnotations,
 	},
 	{

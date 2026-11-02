@@ -22,7 +22,7 @@ import {
 import "./style.css";
 
 const app = new App(
-	{ name: "Y2 Intel", version: "0.4.0" },
+	{ name: "Y2 Intel", version: "0.4.1" },
 	{ availableDisplayModes: ["inline", "fullscreen"] },
 	{ strict: true },
 );
