@@ -1,6 +1,6 @@
 # Native integration release operations
 
-Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.4.0`.
+Display name: **Y2 Intel**. Package identifier: `y2-intel`. Hosted version: `0.4.1`.
 
 ## Service and ownership
 

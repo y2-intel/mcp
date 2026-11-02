@@ -137,7 +137,7 @@ served from `https://y2.dev/api/openapi.yaml`.
 | `y2_list_profiles` | `GET /api/v1/profiles` | `profiles:read` |
 | `y2_list_news`, `y2_list_recaps`, `y2_list_feeds` | News Terminal items, AI recaps, and feed metadata | `news:read` |
 | `y2_list_osint_*`, `y2_get_country_*`, `y2_list_aircraft`, `y2_list_vessels`, `y2_list_finint_indicators` | Situation Room OSINT, country, military, cyber-threat, market, and FinInt read endpoints | `osint:read` |
-| `y2_list_incidents_v2`, `y2_get_incident_v2`, `y2_list_entities_v2`, `y2_get_entity_v2`, `y2_get_entity_graph_v2`, `y2_list_markets_v2`, `y2_list_finint_intel_v2`, `y2_list_signals_v2`, `y2_get_cyber_graph_v2`, `y2_list_cves_v2`, `y2_list_threat_actors_v2` | Intel v2 explorer, market, FinInt, signal, and cyber endpoints | `intel:explorer`, `intel:finint`, or `intel:cyber` depending on endpoint |
+| `y2_list_incidents_v2`, `y2_get_incident_v2`, `y2_list_entities_v2`, `y2_get_entity_v2`, `y2_get_entity_graph_v2`, `y2_list_markets_v2`, `y2_list_finint_intel_v2`, `y2_list_signals_v2`, `y2_get_cyber_graph_v2`, `y2_list_cves_v2`, `y2_get_cve_disclosure_v2`, `y2_list_threat_actors_v2` | Intel v2 explorer, market, FinInt, signal, and cyber endpoints | `intel:explorer`, `intel:finint`, or `intel:cyber` depending on endpoint |
 | `y2_list_webhooks` | List webhook configurations | `webhooks:manage` |
 | `y2_list_projects`, `y2_get_project` | Project listing and detail | `projects:read` |
 | `y2_list_automations`, `y2_get_automation`, `y2_list_automation_runs` | Automation definitions and run history | `automations:read` |
